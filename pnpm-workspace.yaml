@@ -10,14 +10,12 @@ catalogs:
     unplugin: ^2.3.5
     unplugin-auto-import: ^19.3.0
     unplugin-vue-components: ^28.7.0
-    unplugin-vue-macros: ^2.14.5
     unplugin-vue-router: ^0.12.0
     vite: ^6.3.5
   dev:
     '@antfu/eslint-config': ^4.14.1
     '@types/node': ^22.15.31
     '@unocss/eslint-plugin': ^66.2.0
-    '@vue-macros/volar': ^3.0.0-beta.14
     eslint: ^9.28.0
     eslint-plugin-format: ^1.0.1
     lint-staged: ^16.1.0
