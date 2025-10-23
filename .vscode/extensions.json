@@ -1,11 +1,21 @@
 {
   "recommendations": [
+    "vue.volar",
     "antfu.iconify",
     "antfu.unocss",
     "antfu.goto-alias",
-    "vue.volar",
+    "antfu.catalog",
     "dbaeumer.vscode-eslint",
     "EditorConfig.EditorConfig",
-    "antfu.catalog"
+    "mrmaoddxxaa.create-uniapp-view",
+    "uni-helper.uni-helper-vscode",
+    "uni-helper.uni-app-schemas-vscode",
+    "uni-helper.uni-highlight-vscode",
+    "uni-helper.uni-ui-snippets-vscode",
+    "uni-helper.uni-app-snippets-vscode",
+    "uni-helper.uni-cloud-snippets-vscode",
+    "yoavbls.pretty-ts-errors",
+    "johnsoncodehk.vscode-tsconfig-helper",
+    "wot-ui.wot-ui-intellisense"
   ]
 }

@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'vue'
-import type { Pattern } from '~/types/pattern'
+import type { Pattern } from './types/pattern'
 
 const containerStyle: CSSProperties = {
   minHeight: '100vh',

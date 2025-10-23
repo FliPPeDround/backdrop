@@ -1,0 +1,24 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "composite": true,
+    "baseUrl": ".",
+    "paths": {
+      "~/*": ["src/*"]
+    },
+    "types": [
+      "vite/client",
+      "unplugin-vue-router/client"
+    ]
+  },
+  "include": [
+    "src/**/*",
+    "src/**/*.vue",
+    "../data/src/patterns.ts"
+  ],
+  "exclude": [
+    "dist",
+    "node_modules",
+    "eslint.config.js"
+  ]
+}

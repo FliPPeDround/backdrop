@@ -1,0 +1,58 @@
+{
+  "name": "@bling-bg/mp",
+  "type": "module",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "unh dev",
+    "build": "unh build",
+    "about": "unh info",
+    "type-check": "vue-tsc --noEmit",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
+  },
+  "dependencies": {
+    "@dcloudio/uni-app": "catalog:mp",
+    "@dcloudio/uni-components": "catalog:mp",
+    "@dcloudio/uni-h5": "catalog:mp",
+    "@dcloudio/uni-mp-weixin": "catalog:mp",
+    "@uni-helper/uni-network": "catalog:uni-helper",
+    "@uni-helper/uni-promises": "catalog:uni-helper",
+    "@uni-helper/uni-use": "catalog:uni-helper",
+    "@vueuse/core": "catalog:mp",
+    "vue": "catalog:mp",
+    "vue-router": "catalog:mp",
+    "wot-design-uni": "catalog:mp"
+  },
+  "devDependencies": {
+    "@dcloudio/types": "catalog:mp",
+    "@dcloudio/uni-automator": "catalog:mp",
+    "@dcloudio/uni-cli-shared": "catalog:mp",
+    "@dcloudio/uni-stacktracey": "catalog:mp",
+    "@dcloudio/vite-plugin-uni": "catalog:mp",
+    "@iconify-json/carbon": "catalog:build",
+    "@types/node": "catalog:dev",
+    "@uni-helper/eslint-config": "catalog:uni-helper",
+    "@uni-helper/plugin-uni": "catalog:uni-helper",
+    "@uni-helper/unh": "catalog:uni-helper",
+    "@uni-helper/uni-types": "catalog:uni-helper",
+    "@uni-helper/unocss-preset-uni": "catalog:uni-helper",
+    "@uni-helper/vite-plugin-uni-components": "catalog:uni-helper",
+    "@uni-helper/vite-plugin-uni-layouts": "catalog:uni-helper",
+    "@uni-helper/vite-plugin-uni-manifest": "catalog:uni-helper",
+    "@uni-helper/vite-plugin-uni-pages": "catalog:uni-helper",
+    "@uni-helper/vite-plugin-uni-platform": "catalog:uni-helper",
+    "@vue/runtime-core": "catalog:mp",
+    "@vue/tsconfig": "catalog:mp",
+    "miniprogram-api-typings": "catalog:mp",
+    "sass": "catalog:mp",
+    "unocss": "catalog:mp",
+    "vite": "catalog:mp",
+    "vue-tsc": "catalog:mp"
+  },
+  "pnpm": {
+    "overrides": {
+      "unconfig": "catalog:dev"
+    }
+  }
+}

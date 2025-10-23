@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, type CSSProperties, nextTick, onMounted, onUnmounted, ref, useTemplateRef, watch } from 'vue'
+import type { CSSProperties } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref, useTemplateRef, watch } from 'vue'
 
 interface GlassSurfaceProps {
   width?: string | number

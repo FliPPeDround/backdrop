@@ -1,6 +1,8 @@
 {
   "files.associations": {
-    "*.css": "postcss"
+    "*.css": "postcss",
+    "pages.json": "jsonc",
+    "manifest.json": "jsonc"
   },
 
   // Enable the ESlint flat config support

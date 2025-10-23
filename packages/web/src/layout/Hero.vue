@@ -14,7 +14,7 @@
       />
     </h1>
     <h2 text-2xl tracking-tight font-bold lg:text-4xl md:text-4xl sm:text-3xl>
-      <span class="bg-gradient-to-r text-#fff leading-tight bg-[200%_auto] transition-all duration-300 from-neutral-100 to-neutral-400 via-slate-400 bg-clip-text">
+      <span class="text-#fff leading-tight bg-[200%_auto] transition-all duration-300 from-neutral-100 to-neutral-400 via-slate-400 bg-gradient-to-r bg-clip-text">
         的小程序背景图
       </span>
     </h2>
