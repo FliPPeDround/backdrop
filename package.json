@@ -4,7 +4,8 @@
   "private": true,
   "packageManager": "pnpm@10.12.1",
   "scripts": {
-    "dev": "pnpm -r dev",
+    "web": "cd packages/web && pnpm dev",
+    "mp": "cd packages/mp && pnpm dev wx",
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
     "up": "taze major -I",

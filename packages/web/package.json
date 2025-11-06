@@ -15,6 +15,7 @@
   "dependencies": {
     "@vueuse/core": "catalog:frontend",
     "motion-v": "catalog:frontend",
+    "ogl": "catalog:frontend",
     "vue": "catalog:frontend",
     "vue-router": "catalog:frontend"
   },

@@ -13,7 +13,7 @@
         <Logo mr-2 />
         Bling Background
       </div>
-      <div i-carbon:logo-github />
+      <a href="https://github.com/FliPPeDround/BG-Bling" target="_blank" i-carbon:logo-github cursor-pointer />
     </div>
   </GlassSurface>
 </template>
