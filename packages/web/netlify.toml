@@ -1,6 +1,6 @@
 [build]
-publish = "dist"
-command = "pnpm run build"
+command = "pnpm --filter web run build"
+publish = "packages/web/dist"
 
 [build.environment]
 NODE_VERSION = "24"
