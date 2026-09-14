@@ -9,8 +9,8 @@ export const PATTERN_FRAMEWORKS = [
 ] as const
 
 export const PATTERN_CODE_STYLES = [
-  { id: 'separated', label: '样式分离' },
   { id: 'inline', label: '内联样式' },
+  { id: 'separated', label: '样式分离' },
 ] as const
 
 export type FrameworkId = (typeof PATTERN_FRAMEWORKS)[number]['id']

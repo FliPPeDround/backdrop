@@ -14,7 +14,7 @@ const props = defineProps<{
 const selected = defineModel<Pattern | null>('selected', { default: null })
 
 const framework = ref<FrameworkId>('weixin')
-const codeStyle = ref<CodeStyleId>('separated')
+const codeStyle = ref<CodeStyleId>('inline')
 const preferredMotion = usePreferredReducedMotion()
 const reduceMotion = computed(() => preferredMotion.value === 'reduce')
 
