@@ -40,6 +40,7 @@ interface GlassSurfaceProps {
     | 'plus-lighter'
   className?: string
   style?: CSSProperties
+  simple?: boolean
 }
 
 const props = withDefaults(defineProps<GlassSurfaceProps>(), {
@@ -62,6 +63,7 @@ const props = withDefaults(defineProps<GlassSurfaceProps>(), {
   mixBlendMode: 'difference',
   className: '',
   style: () => ({}),
+  simple: false,
 })
 
 const isDarkMode = ref(false)
@@ -165,6 +167,18 @@ const containerStyles = computed(() => {
     'borderRadius': `${props.borderRadius}px`,
     '--glass-frost': props.backgroundOpacity,
     '--glass-saturation': props.saturation,
+  }
+
+  if (props.simple) {
+    const frost = Math.min(0.55, 0.28 + Number(props.backgroundOpacity || 0.1))
+    return {
+      ...baseStyles,
+      background: `rgba(8, 8, 12, ${frost})`,
+      backdropFilter: 'blur(12px) saturate(1.6)',
+      WebkitBackdropFilter: 'blur(12px) saturate(1.6)',
+      border: '1px solid rgba(255, 255, 255, 0.22)',
+      boxShadow: 'inset 0 1px 0 0 rgba(255, 255, 255, 0.16)',
+    }
   }
 
   const svgSupported = supportsSVGFilters()
@@ -318,6 +332,8 @@ onMounted(() => {
   const cleanup = updateDarkMode()
 
   nextTick(() => {
+    if (props.simple)
+      return
     updateDisplacementMap()
     updateFilterElements()
     setupResizeObserver()
@@ -335,7 +351,7 @@ onMounted(() => {
 
 <template>
   <div ref="containerRef" :class="[glassSurfaceClasses, focusVisibleClasses, className]" :style="containerStyles">
-    <svg class="opacity-0 h-full w-full pointer-events-none inset-0 absolute -z-10" xmlns="http://www.w3.org/2000/svg">
+    <svg v-if="!simple" class="opacity-0 h-full w-full pointer-events-none inset-0 absolute -z-10" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <filter :id="filterId" color-interpolation-filters="sRGB" x="0%" y="0%" width="100%" height="100%">
           <feImage ref="feImageRef" x="0" y="0" width="100%" height="100%" preserveAspectRatio="none" result="map" />

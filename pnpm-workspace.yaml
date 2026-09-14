@@ -1,6 +1,8 @@
 packages:
   - 'packages/*'
 
+catalog:
+  sugar-high: ^2.4.1
 catalogs:
   build:
     '@iconify-json/carbon': ^1.2.9

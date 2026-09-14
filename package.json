@@ -1,5 +1,5 @@
 {
-  "name": "@bg-bling/monorepo",
+  "name": "@backdrop/monorepo",
   "type": "module",
   "private": true,
   "packageManager": "pnpm@10.12.1",

@@ -9,3 +9,20 @@ body,
 html.dark {
   color-scheme: dark;
 }
+
+/* Keep scrolling, hide every scrollbar (page, modal, code). */
+*,
+*::before,
+*::after {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+*::-webkit-scrollbar,
+*::before::-webkit-scrollbar,
+*::after::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+  background: transparent;
+}

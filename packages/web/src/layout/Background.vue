@@ -109,10 +109,19 @@ function initSilk() {
   if (!container)
     return
 
-  renderer = new Renderer({
-    alpha: true,
-    antialias: true,
-  })
+  try {
+    renderer = new Renderer({
+      alpha: true,
+      antialias: true,
+    })
+  }
+  catch (error) {
+    console.warn('[Background] WebGL unavailable, skip silk effect.', error)
+    return
+  }
+
+  if (!renderer)
+    return
 
   const gl = renderer.gl
   gl.clearColor(0, 0, 0, 0)

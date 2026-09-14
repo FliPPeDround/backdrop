@@ -14,7 +14,8 @@
   "include": [
     "src/**/*",
     "src/**/*.vue",
-    "../data/src/patterns.ts"
+    "auto-imports.d.ts",
+    "components.d.ts"
   ],
   "exclude": [
     "dist",
