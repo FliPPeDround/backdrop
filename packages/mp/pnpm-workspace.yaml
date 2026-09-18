@@ -1,1 +1,4 @@
+minimumReleaseAgeExcludePrune: true
+trustPolicy: no-downgrade
 dangerouslyAllowAllBuilds: true
+shellEmulator: true

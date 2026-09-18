@@ -29,5 +29,9 @@ defineOptions({
       <a href="https://github.com/megh-bari/pattern-craft" target="_blank" underline>pattern-craft</a>
       by megh-bari
     </p>
+    <p class="text-gray-500 mt-1">
+      This site is powered by
+      <a href="https://www.netlify.com/" target="_blank" underline>Netlify</a>
+    </p>
   </footer>
 </template>

@@ -6,14 +6,15 @@
   "scripts": {
     "web": "cd packages/web && pnpm dev",
     "mp": "cd packages/mp && pnpm dev wx",
-    "lint": "eslint .",
-    "lint:fix": "eslint --fix .",
+    "lint": "eslint",
+    "lint:fix": "eslint --fix",
     "up": "taze major -I",
     "postinstall": "npx simple-git-hooks"
   },
   "devDependencies": {
     "@antfu/eslint-config": "catalog:dev",
     "@types/node": "catalog:dev",
+    "baseline-browser-mapping": "catalog:dev",
     "eslint": "catalog:dev",
     "eslint-plugin-format": "catalog:dev",
     "lint-staged": "catalog:dev",

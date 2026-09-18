@@ -17,7 +17,7 @@
     "@vueuse/core": "catalog:frontend",
     "motion-v": "catalog:frontend",
     "ogl": "catalog:frontend",
-    "sugar-high": "catalog:",
+    "sugar-high": "catalog:frontend",
     "vue": "catalog:frontend",
     "vue-router": "catalog:frontend"
   },

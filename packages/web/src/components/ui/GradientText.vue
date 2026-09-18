@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 
 interface GradientTextProps {
-  text: string
+  text?: string
   className?: string
   colors?: string[]
   animationSpeed?: number
@@ -37,7 +37,7 @@ const textStyle = computed(() => ({
 
 <template>
   <div
-    :class="`relative mx-auto flex max-w-fit flex-row items-center justify-center rounded-[1.25rem] font-medium backdrop-blur transition-shadow duration-500 overflow-hidden cursor-pointer ${className}`"
+    class="font-medium mx-auto rounded-[1.25rem] flex flex-row max-w-fit cursor-pointer transition-shadow duration-500 items-center justify-center relative overflow-hidden backdrop-blur"
   >
     <div
       v-if="showBorder"
