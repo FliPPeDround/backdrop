@@ -1,26 +1,32 @@
 import { fileURLToPath, URL } from 'node:url'
-
-import { defineConfig } from 'vite'
+import Uni from '@uni-helper/plugin-uni'
+import { uniuseAutoImports } from '@uni-helper/uni-use'
 import Components from '@uni-helper/vite-plugin-uni-components'
-import { WotResolver } from '@uni-helper/vite-plugin-uni-components/resolvers'
-import UniPages from '@uni-helper/vite-plugin-uni-pages'
 import UniLayouts from '@uni-helper/vite-plugin-uni-layouts'
 import UniManifest from '@uni-helper/vite-plugin-uni-manifest'
-import UniPlatform from '@uni-helper/vite-plugin-uni-platform'
-import Uni from '@uni-helper/plugin-uni'
+import UniPages from '@uni-helper/vite-plugin-uni-pages'
 import UnoCSS from 'unocss/vite'
+import AutoImport from 'unplugin-auto-import/vite'
+import { defineConfig } from 'vite'
 
 export default defineConfig({
   resolve: {
     alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url))
-    }
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+    },
   },
   plugins: [
     // https://uni-helper.js.org/vite-plugin-uni-components
     Components({
       dts: true,
-      resolvers: [WotResolver()]
+      resolvers: [],
+    }),
+    // https://github.com/unplugin/unplugin-auto-import
+    AutoImport({
+      imports: ['vue', 'uni-app', '@vueuse/core', uniuseAutoImports()],
+      dts: 'src/auto-imports.d.ts',
+      dirs: ['src/composables', 'src/stores', 'src/utils'],
+      vueTemplate: true,
     }),
     // https://uni-helper.js.org/vite-plugin-uni-pages
     UniPages(),
@@ -28,21 +34,8 @@ export default defineConfig({
     UniLayouts(),
     // https://uni-helper.js.org/vite-plugin-uni-manifest
     UniManifest(),
-    // https://uni-helper.js.org/vite-plugin-uni-platform
-    UniPlatform(),
     // https://uni-helper.js.org/plugin-uni
     Uni(),
     UnoCSS(),
   ],
-  build: {
-    target: "es6",
-    cssTarget: "chrome61"
-  },
-  optimizeDeps: {
-    exclude: [
-      "vue-demi"
-    ]
-  }  
 })
-
-

@@ -11,9 +11,6 @@ export default defineUniPages({
     navigationBarTextStyle: '@navTxtStyle',
     navigationBarTitleText: 'Uni Creator',
     navigationStyle: 'custom',
-    'app-plus': {
-      scrollIndicator: 'none',
-    },
   },
   subPackages: [],
 })

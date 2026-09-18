@@ -17,7 +17,7 @@
 | --------------------------------- | ------------------------------------------- |
 | [@backdrop/data](./packages/data) | 图案数据与代码生成核心                      |
 | [@backdrop/web](./packages/web)   | 在线预览与复制代码（Vue 3 + Vite + UnoCSS） |
-| [@backdrop/mp](./packages/mp)     | 小程序端演示（uni-app + wot-design-uni）    |
+| [@backdrop/mp](./packages/mp)     | 小程序端演示（uni-app）                     |
 
 ## 快速开始
 

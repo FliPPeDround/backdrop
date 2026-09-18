@@ -13,12 +13,7 @@ function handleClickGithub() {
 </script>
 
 <template>
-  <view
-    i-carbon:logo-github
-    absolute
-    bottom-1rem left="50%"
-    translate-x="-50%"
-    color="#888"
-    @click="handleClickGithub"
-  />
+  <view class="absolute bottom-4 left-1/2 -translate-x-1/2 text-gray-400" @click="handleClickGithub">
+    <image class="inline-block h-6 w-6" src="/static/github.svg" />
+  </view>
 </template>
