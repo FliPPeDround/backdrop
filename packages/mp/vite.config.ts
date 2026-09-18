@@ -23,8 +23,7 @@ export default defineConfig({
     }),
     // https://github.com/unplugin/unplugin-auto-import
     AutoImport({
-      imports: ['vue', 'uni-app', '@vueuse/core', uniuseAutoImports()],
-      dts: 'src/auto-imports.d.ts',
+      imports: ['vue', 'uni-app', uniuseAutoImports(), '@vueuse/core'],
       dirs: ['src/composables', 'src/stores', 'src/utils'],
       vueTemplate: true,
     }),

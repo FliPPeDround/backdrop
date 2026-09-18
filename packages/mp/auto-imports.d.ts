@@ -137,7 +137,7 @@ declare global {
   const tryOnLoad: typeof import('@uni-helper/uni-use').tryOnLoad
   const tryOnMounted: typeof import('@vueuse/core').tryOnMounted
   const tryOnReady: typeof import('@uni-helper/uni-use').tryOnReady
-  const tryOnScopeDispose: typeof import('@uni-helper/uni-use').tryOnScopeDispose
+  const tryOnScopeDispose: typeof import('@vueuse/core').tryOnScopeDispose
   const tryOnShow: typeof import('@uni-helper/uni-use').tryOnShow
   const tryOnUnload: typeof import('@uni-helper/uni-use').tryOnUnload
   const tryOnUnmounted: typeof import('@vueuse/core').tryOnUnmounted
@@ -243,11 +243,11 @@ declare global {
   const useMousePressed: typeof import('@vueuse/core').useMousePressed
   const useMutationObserver: typeof import('@vueuse/core').useMutationObserver
   const useNavigatorLanguage: typeof import('@vueuse/core').useNavigatorLanguage
-  const useNetwork: typeof import('@uni-helper/uni-use').useNetwork
+  const useNetwork: typeof import('@vueuse/core').useNetwork
   const useNow: typeof import('@vueuse/core').useNow
   const useObjectUrl: typeof import('@vueuse/core').useObjectUrl
   const useOffsetPagination: typeof import('@vueuse/core').useOffsetPagination
-  const useOnline: typeof import('@uni-helper/uni-use').useOnline
+  const useOnline: typeof import('@vueuse/core').useOnline
   const usePage: typeof import('@uni-helper/uni-use').usePage
   const usePageLeave: typeof import('@vueuse/core').usePageLeave
   const usePageScroll: typeof import('@uni-helper/uni-use').usePageScroll
@@ -261,7 +261,7 @@ declare global {
   const usePointerSwipe: typeof import('@vueuse/core').usePointerSwipe
   const usePreferredColorScheme: typeof import('@vueuse/core').usePreferredColorScheme
   const usePreferredContrast: typeof import('@vueuse/core').usePreferredContrast
-  const usePreferredDark: typeof import('@uni-helper/uni-use').usePreferredDark
+  const usePreferredDark: typeof import('@vueuse/core').usePreferredDark
   const usePreferredLanguage: typeof import('@uni-helper/uni-use').usePreferredLanguage
   const usePreferredLanguages: typeof import('@vueuse/core').usePreferredLanguages
   const usePreferredReducedMotion: typeof import('@vueuse/core').usePreferredReducedMotion
@@ -294,8 +294,8 @@ declare global {
   const useSpeechRecognition: typeof import('@vueuse/core').useSpeechRecognition
   const useSpeechSynthesis: typeof import('@vueuse/core').useSpeechSynthesis
   const useStepper: typeof import('@vueuse/core').useStepper
-  const useStorage: typeof import('@uni-helper/uni-use').useStorage
-  const useStorageAsync: typeof import('@uni-helper/uni-use').useStorageAsync
+  const useStorage: typeof import('@vueuse/core').useStorage
+  const useStorageAsync: typeof import('@vueuse/core').useStorageAsync
   const useStorageSync: typeof import('@uni-helper/uni-use').useStorageSync
   const useStyleTag: typeof import('@vueuse/core').useStyleTag
   const useSupported: typeof import('@vueuse/core').useSupported
@@ -494,7 +494,7 @@ declare module 'vue' {
     readonly tryOnLoad: UnwrapRef<typeof import('@uni-helper/uni-use')['tryOnLoad']>
     readonly tryOnMounted: UnwrapRef<typeof import('@vueuse/core')['tryOnMounted']>
     readonly tryOnReady: UnwrapRef<typeof import('@uni-helper/uni-use')['tryOnReady']>
-    readonly tryOnScopeDispose: UnwrapRef<typeof import('@uni-helper/uni-use')['tryOnScopeDispose']>
+    readonly tryOnScopeDispose: UnwrapRef<typeof import('@vueuse/core')['tryOnScopeDispose']>
     readonly tryOnShow: UnwrapRef<typeof import('@uni-helper/uni-use')['tryOnShow']>
     readonly tryOnUnload: UnwrapRef<typeof import('@uni-helper/uni-use')['tryOnUnload']>
     readonly tryOnUnmounted: UnwrapRef<typeof import('@vueuse/core')['tryOnUnmounted']>
@@ -600,11 +600,11 @@ declare module 'vue' {
     readonly useMousePressed: UnwrapRef<typeof import('@vueuse/core')['useMousePressed']>
     readonly useMutationObserver: UnwrapRef<typeof import('@vueuse/core')['useMutationObserver']>
     readonly useNavigatorLanguage: UnwrapRef<typeof import('@vueuse/core')['useNavigatorLanguage']>
-    readonly useNetwork: UnwrapRef<typeof import('@uni-helper/uni-use')['useNetwork']>
+    readonly useNetwork: UnwrapRef<typeof import('@vueuse/core')['useNetwork']>
     readonly useNow: UnwrapRef<typeof import('@vueuse/core')['useNow']>
     readonly useObjectUrl: UnwrapRef<typeof import('@vueuse/core')['useObjectUrl']>
     readonly useOffsetPagination: UnwrapRef<typeof import('@vueuse/core')['useOffsetPagination']>
-    readonly useOnline: UnwrapRef<typeof import('@uni-helper/uni-use')['useOnline']>
+    readonly useOnline: UnwrapRef<typeof import('@vueuse/core')['useOnline']>
     readonly usePage: UnwrapRef<typeof import('@uni-helper/uni-use')['usePage']>
     readonly usePageLeave: UnwrapRef<typeof import('@vueuse/core')['usePageLeave']>
     readonly usePageScroll: UnwrapRef<typeof import('@uni-helper/uni-use')['usePageScroll']>
@@ -618,7 +618,7 @@ declare module 'vue' {
     readonly usePointerSwipe: UnwrapRef<typeof import('@vueuse/core')['usePointerSwipe']>
     readonly usePreferredColorScheme: UnwrapRef<typeof import('@vueuse/core')['usePreferredColorScheme']>
     readonly usePreferredContrast: UnwrapRef<typeof import('@vueuse/core')['usePreferredContrast']>
-    readonly usePreferredDark: UnwrapRef<typeof import('@uni-helper/uni-use')['usePreferredDark']>
+    readonly usePreferredDark: UnwrapRef<typeof import('@vueuse/core')['usePreferredDark']>
     readonly usePreferredLanguage: UnwrapRef<typeof import('@uni-helper/uni-use')['usePreferredLanguage']>
     readonly usePreferredLanguages: UnwrapRef<typeof import('@vueuse/core')['usePreferredLanguages']>
     readonly usePreferredReducedMotion: UnwrapRef<typeof import('@vueuse/core')['usePreferredReducedMotion']>
@@ -651,8 +651,8 @@ declare module 'vue' {
     readonly useSpeechRecognition: UnwrapRef<typeof import('@vueuse/core')['useSpeechRecognition']>
     readonly useSpeechSynthesis: UnwrapRef<typeof import('@vueuse/core')['useSpeechSynthesis']>
     readonly useStepper: UnwrapRef<typeof import('@vueuse/core')['useStepper']>
-    readonly useStorage: UnwrapRef<typeof import('@uni-helper/uni-use')['useStorage']>
-    readonly useStorageAsync: UnwrapRef<typeof import('@uni-helper/uni-use')['useStorageAsync']>
+    readonly useStorage: UnwrapRef<typeof import('@vueuse/core')['useStorage']>
+    readonly useStorageAsync: UnwrapRef<typeof import('@vueuse/core')['useStorageAsync']>
     readonly useStorageSync: UnwrapRef<typeof import('@uni-helper/uni-use')['useStorageSync']>
     readonly useStyleTag: UnwrapRef<typeof import('@vueuse/core')['useStyleTag']>
     readonly useSupported: UnwrapRef<typeof import('@vueuse/core')['useSupported']>
