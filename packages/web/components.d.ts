@@ -13,7 +13,6 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     GlassSurface: typeof import('./src/components/ui/GlassSurface.vue')['default']
-    GradientText: typeof import('./src/components/ui/GradientText.vue')['default']
     Logo: typeof import('./src/components/Logo.vue')['default']
     PatternCard: typeof import('./src/components/pattern/PatternCard.vue')['default']
     PatternCodeBlock: typeof import('./src/components/pattern/PatternCodeBlock.vue')['default']
@@ -22,7 +21,6 @@ declare module 'vue' {
     PhoneFrame: typeof import('./src/components/pattern/PhoneFrame.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
-    ShinyText: typeof import('./src/components/ui/ShinyText.vue')['default']
     SparklesText: typeof import('./src/components/ui/SparklesText.vue')['default']
     SpecularButton: typeof import('./src/components/ui/SpecularButton.vue')['default']
   }
@@ -31,7 +29,6 @@ declare module 'vue' {
 // For TSX support
 declare global {
   const GlassSurface: typeof import('./src/components/ui/GlassSurface.vue')['default']
-  const GradientText: typeof import('./src/components/ui/GradientText.vue')['default']
   const Logo: typeof import('./src/components/Logo.vue')['default']
   const PatternCard: typeof import('./src/components/pattern/PatternCard.vue')['default']
   const PatternCodeBlock: typeof import('./src/components/pattern/PatternCodeBlock.vue')['default']
@@ -40,7 +37,6 @@ declare global {
   const PhoneFrame: typeof import('./src/components/pattern/PhoneFrame.vue')['default']
   const RouterLink: typeof import('vue-router')['RouterLink']
   const RouterView: typeof import('vue-router')['RouterView']
-  const ShinyText: typeof import('./src/components/ui/ShinyText.vue')['default']
   const SparklesText: typeof import('./src/components/ui/SparklesText.vue')['default']
   const SpecularButton: typeof import('./src/components/ui/SpecularButton.vue')['default']
 }
