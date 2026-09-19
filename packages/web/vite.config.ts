@@ -12,6 +12,8 @@ export default defineConfig({
     alias: {
       '~/': `${path.resolve(__dirname, 'src')}/`,
     },
+    // @backdrop/shared 以源码形式被 link 进来，其裸 'vue' 导入必须落在本包的版本上
+    dedupe: ['vue'],
   },
   plugins: [
     // https://github.com/posva/unplugin-vue-router

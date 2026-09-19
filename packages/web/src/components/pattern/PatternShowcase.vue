@@ -1,13 +1,12 @@
 <script setup lang="ts">
 import type { Pattern } from '@backdrop/data'
 import type { CardOrigin } from './origin'
-import { gridPatterns } from '@backdrop/data'
+import { PATTERN_CATEGORIES, usePatternBrowser } from '@backdrop/shared'
 import { useFavourites } from '~/composables/favourites'
-import { PATTERN_CATEGORIES } from '~/lib/constants'
 import { readOrigin } from './origin'
 
 const { ids } = useFavourites()
-const activeCategory = ref<(typeof PATTERN_CATEGORIES)[number]['id']>('all')
+const { activeCategory, filteredPatterns } = usePatternBrowser({ favouriteIds: ids })
 const selected = ref<Pattern | null>(null)
 const origin = ref<CardOrigin | null>(null)
 const originEl = shallowRef<HTMLElement | null>(null)
@@ -17,14 +16,6 @@ function onSelect(pattern: Pattern, el: HTMLElement) {
   origin.value = readOrigin(el)
   selected.value = pattern
 }
-
-const filteredPatterns = computed(() => {
-  if (activeCategory.value === 'all')
-    return gridPatterns
-  if (activeCategory.value === 'favourites')
-    return gridPatterns.filter(pattern => ids.value.includes(pattern.id))
-  return gridPatterns.filter(pattern => pattern.category === activeCategory.value)
-})
 </script>
 
 <template>

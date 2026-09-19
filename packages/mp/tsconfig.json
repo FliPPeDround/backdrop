@@ -16,6 +16,10 @@
     "paths": {
       "@/*": [
         "./src/*"
+      ],
+      // link 进来的 @backdrop/shared 自带一份 vue 类型，会让 Ref/ComputedRef 的品牌类型对不上
+      "vue": [
+        "./node_modules/vue"
       ]
     },
     "resolveJsonModule": true,
@@ -38,8 +42,12 @@
       "@uni-helper/uni-types/volar-plugin"
     ]
   },
-  "includes": [
+  "include": [
     "src/**/*.ts",
-    "src/**/*.tsx"
+    "src/**/*.tsx",
+    "src/**/*.vue",
+    "src/**/*.json",
+    "*.d.ts",
+    "*.ts"
   ]
 }

@@ -28,7 +28,8 @@
   "references": [
     { "path": "./packages/web" },
     { "path": "./packages/mp" },
-    { "path": "./packages/data" }
+    { "path": "./packages/data" },
+    { "path": "./packages/shared" }
   ],
   "exclude": [
     "node_modules",

@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@backdrop/data": "workspace:*",
+    "@backdrop/shared": "workspace:*",
     "@vueuse/core": "catalog:frontend",
     "motion-v": "catalog:frontend",
     "ogl": "catalog:frontend",

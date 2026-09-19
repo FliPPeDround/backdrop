@@ -1,7 +1,7 @@
 {
-  "name": "",
+  "name": "Backdrop",
   "appid": "",
-  "description": "",
+  "description": "为小程序打造的开箱即用背景图案库",
   "versionName": "1.0.0",
   "versionCode": "100",
   "transformPx": false,
@@ -48,13 +48,11 @@
   },
   "quickapp": {},
   "mp-weixin": {
-    "appid": "",
+    "appid": "touristappid",
     "setting": {
       "urlCheck": false
     },
-    "usingComponents": true,
-    "darkmode": true,
-    "themeLocation": "theme.json"
+    "usingComponents": true
   },
   "mp-alipay": {
     "usingComponents": true
@@ -69,8 +67,5 @@
     "enable": false
   },
   "vueVersion": "3",
-  "h5": {
-    "darkmode": true,
-    "themeLocation": "theme.json"
-  }
+  "h5": {}
 }

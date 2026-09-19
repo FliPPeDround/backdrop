@@ -1,9 +1,9 @@
 import { defineManifestConfig } from '@uni-helper/vite-plugin-uni-manifest'
 
 export default defineManifestConfig({
-  'name': '',
+  'name': 'Backdrop',
   'appid': '',
-  'description': '',
+  'description': '为小程序打造的开箱即用背景图案库',
   'versionName': '1.0.0',
   'versionCode': '100',
   'transformPx': false,
@@ -52,13 +52,12 @@ export default defineManifestConfig({
   'quickapp': {},
   /* 小程序特有相关 */
   'mp-weixin': {
-    appid: '',
+    // 游客 appid，仅本地预览；正式上传前换成自己的
+    appid: 'touristappid',
     setting: {
       urlCheck: false,
     },
     usingComponents: true,
-    darkmode: true,
-    themeLocation: 'theme.json',
   },
   'mp-alipay': {
     usingComponents: true,
@@ -69,10 +68,7 @@ export default defineManifestConfig({
   'mp-toutiao': {
     usingComponents: true,
   },
-  'h5': {
-    darkmode: true,
-    themeLocation: 'theme.json',
-  },
+  'h5': {},
   'uniStatistics': {
     enable: false,
   },

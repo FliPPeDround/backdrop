@@ -1,5 +1,5 @@
 {
-  "name": "mp",
+  "name": "@backdrop/mp",
   "type": "module",
   "version": "0.1.0",
   "private": true,
@@ -12,6 +12,8 @@
     "lint:fix": "eslint . --fix"
   },
   "dependencies": {
+    "@backdrop/data": "workspace:*",
+    "@backdrop/shared": "workspace:*",
     "@dcloudio/uni-app": "3.0.0-5020420260813003",
     "@dcloudio/uni-app-harmony": "3.0.0-5020420260813003",
     "@dcloudio/uni-app-plus": "3.0.0-5020420260813003",
@@ -29,8 +31,6 @@
     "@dcloudio/uni-mp-xhs": "3.0.0-5020420260813003",
     "@dcloudio/uni-quickapp-webview": "3.0.0-5020420260813003",
     "@uni-helper/uni-promises": "^0.4.0",
-    "@uni-helper/uni-use": "^0.19.17",
-    "@vueuse/core": "9.13.0",
     "vue": "3.4.21",
     "vue-i18n": "9.6.2",
     "vue-router": "4.5.1"

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Pattern } from '@backdrop/data'
+import { toBindingStyle } from '@backdrop/shared'
 import { useFavourites } from '~/composables/favourites'
 
 const props = defineProps<{
@@ -12,6 +13,8 @@ const emit = defineEmits<{
 }>()
 
 const { isFavourite, toggleFavourite } = useFavourites()
+
+const bindingStyle = computed(() => toBindingStyle(props.pattern.style))
 
 function onSelect(event: MouseEvent | KeyboardEvent) {
   emit('select', props.pattern, event.currentTarget as HTMLElement)
@@ -35,7 +38,7 @@ function onToggleFavourite(event: Event) {
     @click="onSelect"
     @keydown.enter.prevent="onSelect"
   >
-    <div class="inset-0 absolute" :style="pattern.style" />
+    <div class="inset-0 absolute" :style="bindingStyle" />
 
     <div class="left-2 top-2 absolute z-10" @click.stop>
       <GlassSurface

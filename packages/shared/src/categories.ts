@@ -6,3 +6,5 @@ export const PATTERN_CATEGORIES = [
   { id: 'effects', label: '效果' },
   { id: 'favourites', label: '收藏' },
 ] as const
+
+export type PatternCategory = (typeof PATTERN_CATEGORIES)[number]['id']

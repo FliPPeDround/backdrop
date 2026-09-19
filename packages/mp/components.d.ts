@@ -12,19 +12,27 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
-    AppFooter: typeof import('./src/components/AppFooter.vue')['default']
-    AppLogos: typeof import('./src/components/AppLogos.vue')['default']
-    InputEntry: typeof import('./src/components/InputEntry.vue')['default']
+    BottomSheet: typeof import('./src/components/BottomSheet.vue')['default']
+    CodeSheet: typeof import('./src/components/CodeSheet.vue')['default']
+    FavouriteButton: typeof import('./src/components/FavouriteButton.vue')['default']
+    PageRail: typeof import('./src/components/PageRail.vue')['default']
+    PatternPicker: typeof import('./src/components/PatternPicker.vue')['default']
+    PatternSurface: typeof import('./src/components/PatternSurface.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    Switcher: typeof import('./src/components/Switcher.vue')['default']
   }
 }
 
 // For TSX support
 declare global {
-  const AppFooter: typeof import('./src/components/AppFooter.vue')['default']
-  const AppLogos: typeof import('./src/components/AppLogos.vue')['default']
-  const InputEntry: typeof import('./src/components/InputEntry.vue')['default']
+  const BottomSheet: typeof import('./src/components/BottomSheet.vue')['default']
+  const CodeSheet: typeof import('./src/components/CodeSheet.vue')['default']
+  const FavouriteButton: typeof import('./src/components/FavouriteButton.vue')['default']
+  const PageRail: typeof import('./src/components/PageRail.vue')['default']
+  const PatternPicker: typeof import('./src/components/PatternPicker.vue')['default']
+  const PatternSurface: typeof import('./src/components/PatternSurface.vue')['default']
   const RouterLink: typeof import('vue-router')['RouterLink']
   const RouterView: typeof import('vue-router')['RouterView']
+  const Switcher: typeof import('./src/components/Switcher.vue')['default']
 }

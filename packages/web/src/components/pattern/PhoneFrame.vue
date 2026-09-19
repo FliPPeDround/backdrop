@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import type { Pattern } from '@backdrop/data'
+import { toBindingStyle } from '@backdrop/shared'
 import { useNow } from '@vueuse/core'
 import { computed } from 'vue'
 
-withDefaults(defineProps<{
+const props = withDefaults(defineProps<{
   pattern: Pattern
   fluid?: boolean
   morph?: 'card' | 'phone'
@@ -11,6 +12,8 @@ withDefaults(defineProps<{
   fluid: false,
   morph: 'phone',
 })
+
+const bindingStyle = computed(() => toBindingStyle(props.pattern.style))
 
 const now = useNow({ interval: 1000 })
 const currentTime = computed(() => {
@@ -29,7 +32,7 @@ const currentTime = computed(() => {
     }"
   >
     <div class="phone-screen">
-      <div class="phone-wallpaper" :style="pattern.style" />
+      <div class="phone-wallpaper" :style="bindingStyle" />
       <div class="phone-ui">
         <div class="phone-status">
           <span>{{ currentTime }}</span>

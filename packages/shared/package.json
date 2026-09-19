@@ -1,0 +1,34 @@
+{
+  "name": "@backdrop/shared",
+  "type": "module",
+  "version": "0.1.0",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./*"
+  },
+  "main": "./src/index.ts",
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./*"
+      ]
+    }
+  },
+  "files": [
+    "src"
+  ],
+  "scripts": {
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
+  },
+  "peerDependencies": {
+    "vue": ">=3.4"
+  },
+  "dependencies": {
+    "@backdrop/data": "workspace:*"
+  },
+  "devDependencies": {
+    "vue": "catalog:frontend"
+  }
+}
