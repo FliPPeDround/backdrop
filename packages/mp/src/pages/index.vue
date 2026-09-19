@@ -204,7 +204,7 @@ function onFavouriteChange(next: boolean) {
 
       <PageRail :total="slides.length" :turn="railTurn" :dir="dir" />
 
-      <view class="top" :style="{ paddingTop: `${statusBarHeight + 30}px` }">
+      <view class="top" :style="{ marginTop: `${statusBarHeight}px` }">
         <view :key="`cat-${active.id}`" class="eyebrow" :class="dir > 0 ? 'head-in-up' : 'head-in-down'">
           <text>{{ categoryLabel }}</text>
         </view>
@@ -358,6 +358,8 @@ function onFavouriteChange(next: boolean) {
   right: 0;
   left: 0;
   z-index: 2;
+  /* 状态栏的高度由 inline margin 给，这里只放设计上的下移量：整块从屏幕边离开一段 */
+  padding-top: 96rpx;
   padding-right: 36rpx;
   padding-left: 36rpx;
   /* 标题区只是读数，起手势不该被文字块挡住 */
@@ -365,12 +367,12 @@ function onFavouriteChange(next: boolean) {
 }
 
 /*
- * 三行不是一堆，是两组，而且两组之间要有一段真正的距离：分类贴着名字（标签），
- * 名字下方留 64rpx 才放读数——间距本身就是层级，留 10rpx 时三行读成一行。
+ * 三行不是一堆，是两组：分类是名字的标签（14rpx，贴着走），
+ * 名字下方留 44rpx 才放读数——间距本身就是层级，3 倍于标签间距才读得出这是两组。
  */
 .title-stack {
   position: relative;
-  margin-top: 16rpx;
+  margin-top: 14rpx;
 }
 
 .title--leave {
@@ -460,33 +462,36 @@ function onFavouriteChange(next: boolean) {
 }
 
 /*
- * 大字号收紧字距、压紧行高；小字号留一点字距。
+ * 三档字号各自定重量：标签 22 / 名字 60 / 读数 24。
+ * 字距按字号走，不能一个值用到底：60rpx 收 -1.2rpx（约 -0.02em，大字号要收紧），
+ * 24rpx 留 +0.3rpx（小字号要松开一点才读得清）。
+ * 行高 1.12：名字是英文，超过一行就折行，1.05 下上一行的降部和下一行的升部会打架。
  * 注意：标题类名不要取「h + 数字」，UnoCSS 会把它当高度工具类扫出来，
  * 生成一条全局 height 规则把文字盒压扁。
- * 行高留到 1.12：名字是英文，超过一行就折行，1.05 下上一行的降部和下一行的升部会打架。
  */
 .title {
-  font-size: 62rpx;
+  font-size: 60rpx;
   font-weight: 700;
   line-height: 1.12;
-  letter-spacing: -1.8rpx;
+  letter-spacing: -1.2rpx;
   color: #fff;
   text-shadow: 0 2rpx 16rpx rgba(0, 0, 0, 0.32);
 }
 
-/*
- * 读数落在遮罩的平台段上（0.62 → 0.52），压暗比标题那一档薄一半，
- * 所以靠一层贴身阴影补对比：1rpx 的硬边把字形从浅底上抠出来，别糊成一团。
- */
+/* 读数比标签大一档、比名字轻两档：它要说清内容，但别跟名字抢 */
 .sub {
-  margin-top: 64rpx;
-  font-size: 22rpx;
-  letter-spacing: 0.2rpx;
+  margin-top: 44rpx;
+  font-size: 24rpx;
+  letter-spacing: 0.3rpx;
   color: var(--ink-2);
   text-shadow: 0 1rpx 3rpx rgba(8, 7, 12, 0.6), 0 3rpx 14rpx rgba(8, 7, 12, 0.35);
 }
 
-/* dock 无底板：图案一直铺到底边，只有两颗浮着的按钮 */
+/*
+ * dock 无底板：图案一直铺到底边，只有两颗浮着的按钮。
+ * 底部留 64rpx（≈16pt，iOS 常规底边距）再叠安全区：原来只有 28rpx，
+ * 在没有安全区的机型上按钮几乎贴着屏幕边，拇指按起来很勉强。
+ */
 .dock {
   position: absolute;
   right: 0;
@@ -495,7 +500,7 @@ function onFavouriteChange(next: boolean) {
   z-index: 2;
   display: flex;
   align-items: center;
-  padding: 24rpx 36rpx calc(28rpx + env(safe-area-inset-bottom));
+  padding: 24rpx 36rpx calc(64rpx + env(safe-area-inset-bottom));
   /* 底边这条带是起手势最常用的位置，只有按钮自己吃触摸 */
   pointer-events: none;
 }
