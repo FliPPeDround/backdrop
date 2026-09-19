@@ -52,8 +52,7 @@ export default defineManifestConfig({
   'quickapp': {},
   /* 小程序特有相关 */
   'mp-weixin': {
-    // 游客 appid，仅本地预览；正式上传前换成自己的
-    appid: 'touristappid',
+    appid: 'wx2a79658b9706ec5f',
     setting: {
       urlCheck: false,
     },

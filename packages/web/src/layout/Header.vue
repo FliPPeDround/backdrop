@@ -29,7 +29,7 @@ onMounted(updateVisibility)
     >
       <div flex="~ row" mx-6 w-full items-center justify-between>
         <div flex items-center>
-          <Logo mr-2 />
+          <Logo text-22px mr-2 />
           Backdrop
         </div>
         <a href="https://github.com/FliPPeDround/backdrop" target="_blank" i-carbon:logo-github cursor-pointer />

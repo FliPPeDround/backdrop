@@ -1,6 +1,12 @@
-# Backdrop
+<p align="center">
+  <img src="./brand/backdrop/icon-light.svg" width="96" height="96" alt="Backdrop logo" />
+</p>
 
-为小程序打造的开箱即用背景图案库。精选渐变、光晕、网格等背景图案，在线预览真机效果，一键复制适配代码，无缝集成到你的小程序项目中。
+<h1 align="center">Backdrop</h1>
+
+<p align="center">为小程序打造的开箱即用背景图案库。</p>
+
+精选渐变、光晕、网格等背景图案，在线预览真机效果，一键复制适配代码，无缝集成到你的小程序项目中。
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 
