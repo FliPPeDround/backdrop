@@ -48,13 +48,13 @@ pnpm mcp:test
 
 ## MCP 接入
 
-线上端点即本站的 `/mcp`（部署后为 `https://<你的域名>/mcp`），无需密钥。把它加进支持远程 MCP 的客户端：
+线上端点即本站的 `/mcp` 无需密钥。把它加进支持远程 MCP 的客户端：
 
 ```json
 {
   "mcpServers": {
     "backdrop": {
-      "url": "https://<你的域名>/mcp"
+      "url": "https://mpbackdrop.netlify.app/mcp"
     }
   }
 }
