@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Pattern } from '@backdrop/data'
 import { toBindingStyle } from '@backdrop/shared'
-import { useNow } from '@vueuse/core'
+import { useIntervalFn, useNow } from '@vueuse/core'
 import { computed } from 'vue'
 
 const props = withDefaults(defineProps<{
@@ -15,7 +15,7 @@ const props = withDefaults(defineProps<{
 
 const bindingStyle = computed(() => toBindingStyle(props.pattern.style))
 
-const now = useNow({ interval: 1000 })
+const now = useNow({ scheduler: cb => useIntervalFn(cb, 1000) })
 const currentTime = computed(() => {
   const h = now.value.getHours().toString().padStart(2, '0')
   const m = now.value.getMinutes().toString().padStart(2, '0')

@@ -16,8 +16,13 @@ async function copyConfig() {
 </script>
 
 <template>
-  <section mx-auto px-4 pb-10 max-w-6xl w-full lg:px-8 sm:px-6>
-    <GlassSurface simple class="!w-full" height="auto" :border-radius="20">
+  <section mx-auto pb-10 w-fit>
+    <GlassSurface
+      simple
+      width="min(48rem, calc(100vw - 1.5rem))"
+      height="auto"
+      :border-radius="20"
+    >
       <div class="text-left flex flex-col gap-4 w-full items-start">
         <div class="ml-2 mt-2 flex flex-col gap-1.5">
           <h2 class="text-sm text-white/92 tracking-wide font-medium">
