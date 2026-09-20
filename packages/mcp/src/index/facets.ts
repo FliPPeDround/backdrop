@@ -1,4 +1,4 @@
-import type { Pattern } from '@backdrop/data'
+import type { Pattern } from '../../../data/src/index'
 import type { HueFacet } from './synonyms'
 
 export interface PatternFacets {

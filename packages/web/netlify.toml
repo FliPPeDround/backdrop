@@ -7,16 +7,11 @@ NODE_VERSION = "24"
 
 [functions]
 directory = "packages/mcp/functions"
-node_bundler = "esbuild"
 
-# Guards /mcp against the SPA catch-all below. Keep it above that rule, and keep it even
-# though the function also declares `config.path = ['/mcp']`: function routes are matched
-# after redirect rules, so without this /mcp silently returns index.html.
-[[redirects]]
-from = "/mcp"
-to = "/.netlify/functions/mcp"
-status = 200
-force = true
+# The v2 function in packages/mcp/functions owns /mcp through its own `config.path`, and
+# function routes outrank the non-forced catch-all below. Do not add a
+# `/mcp` -> `/.netlify/functions/mcp` redirect: v2 functions are not published at that
+# path, and a forced redirect outranks the function route, so it turns /mcp into a 404.
 
 [[redirects]]
 from = "/*"

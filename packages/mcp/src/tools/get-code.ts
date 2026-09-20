@@ -1,6 +1,6 @@
-import type { CodeStyleId, FrameworkId } from '@backdrop/data'
+import type { CodeStyleId, FrameworkId } from '../../../data/src/index'
 import type { IndexedPattern } from '../index/pattern-index'
-import { generatePatternCode } from '@backdrop/data'
+import { generatePatternCode } from '../../../data/src/index'
 import { buildQuery, indexById, indexByName, PATTERN_INDEX, rankPatterns } from '../index/pattern-index'
 
 export interface GetCodeArgs {
