@@ -3,10 +3,7 @@
 
 <template>
   <div mb-6 sm:mb-8>
-    <h1 text-3xl tracking-tight font-bold mb-1 mt-8 flex lg:text-6xl md:text-5xl sm:text-4xl sm:mb-3>
-      <span text-white font-600 mr-2 transition-colors duration-300>
-        创建
-      </span>
+    <h1 text-3xl tracking-tight font-bold mb-1 mt-8 lg:text-6xl md:text-5xl sm:text-4xl sm:mb-3>
       <SparklesText
         text="Backdrop"
         :colors="{ first: '#9E7AFF', second: '#FE8BBB' }"

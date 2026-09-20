@@ -29,7 +29,8 @@
     { "path": "./packages/web" },
     { "path": "./packages/mp" },
     { "path": "./packages/data" },
-    { "path": "./packages/shared" }
+    { "path": "./packages/shared" },
+    { "path": "./packages/mcp" }
   ],
   "exclude": [
     "node_modules",

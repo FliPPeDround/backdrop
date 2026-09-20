@@ -1,0 +1,38 @@
+{
+  "name": "@backdrop/mcp",
+  "type": "module",
+  "private": true,
+  "packageManager": "pnpm@10.12.1",
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./*"
+  },
+  "main": "./src/index.ts",
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./*"
+      ]
+    }
+  },
+  "files": [
+    "src"
+  ],
+  "scripts": {
+    "lint": "eslint .",
+    "lint:fix": "eslint --fix .",
+    "dev": "tsx src/dev/server.ts",
+    "gen:meta": "tsx scripts/gen-pattern-meta.ts",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@backdrop/data": "workspace:*",
+    "@modelcontextprotocol/server": "catalog:server",
+    "zod": "catalog:server"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:dev",
+    "tsx": "catalog:dev",
+    "vitest": "catalog:dev"
+  }
+}

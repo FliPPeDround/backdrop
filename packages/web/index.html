@@ -7,19 +7,11 @@
     <title>Backdrop</title>
     <meta name="description" content="专业级别的背景图案和渐变效果" />
   </head>
-  <body class="font-sans dark:text-white dark:bg-hex-121212">
+  <body class="font-sans text-white bg-hex-121212">
     <div id="app"></div>
     <noscript>
       <div>Please enable JavaScript to use this application.</div>
     </noscript>
-    <script>
-      ;(function () {
-        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
-        const setting = localStorage.getItem('color-schema') || 'auto'
-        if (setting === 'dark' || (prefersDark && setting !== 'light'))
-          document.documentElement.classList.toggle('dark', true)
-      })()
-    </script>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

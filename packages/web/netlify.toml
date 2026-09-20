@@ -5,6 +5,19 @@ publish = "packages/web/dist"
 [build.environment]
 NODE_VERSION = "24"
 
+[functions]
+directory = "packages/mcp/functions"
+node_bundler = "esbuild"
+
+# Guards /mcp against the SPA catch-all below. Keep it above that rule, and keep it even
+# though the function also declares `config.path = ['/mcp']`: function routes are matched
+# after redirect rules, so without this /mcp silently returns index.html.
+[[redirects]]
+from = "/mcp"
+to = "/.netlify/functions/mcp"
+status = 200
+force = true
+
 [[redirects]]
 from = "/*"
 to = "/index.html"

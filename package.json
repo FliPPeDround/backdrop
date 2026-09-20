@@ -6,6 +6,8 @@
   "scripts": {
     "web": "cd packages/web && pnpm dev",
     "mp": "cd packages/mp && pnpm dev wx",
+    "mcp:dev": "pnpm --filter @backdrop/mcp run dev",
+    "mcp:test": "pnpm --filter @backdrop/mcp run test",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
     "up": "taze major -I",

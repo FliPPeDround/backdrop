@@ -302,7 +302,7 @@ useEventListener(window, 'resize', () => {
           @click.self="close"
         >
           <Motion
-            class="border border-white/10 rounded-3xl bg-[#16141c]/92 max-h-[92vh] max-w-5xl w-full shadow-2xl relative z-1 overflow-hidden backdrop-blur-xl"
+            class="rounded-3xl max-h-[92vh] max-w-5xl w-full shadow-2xl relative z-1 overflow-hidden"
             role="dialog"
             aria-modal="true"
             :aria-labelledby="`pattern-dialog-${activePattern.id}`"
@@ -311,6 +311,10 @@ useEventListener(window, 'resize', () => {
             :exit="{ opacity: 0 }"
             :transition="fadeTransition"
           >
+            <div class="inset-0 absolute -z-1" aria-hidden="true">
+              <GlassSurface simple width="100%" height="100%" :border-radius="24" :background-opacity="0.3" />
+            </div>
+
             <button
               type="button"
               class="text-white/80 border border-white/10 rounded-full bg-white/5 flex h-9 w-9 transition items-center right-3 top-3 justify-center absolute z-10 hover:text-white hover:bg-white/10"

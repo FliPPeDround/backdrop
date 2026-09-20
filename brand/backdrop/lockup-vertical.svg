@@ -1,16 +1,18 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 360" width="320" height="360" role="img" aria-labelledby="t">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 360" width="320" height="360" role="img" aria-labelledby="t d">
   <title id="t">Backdrop — vertical lockup</title>
+  <desc id="d">深色砖承载倾斜渐隐标，下方居中字标，用于启动页与社交</desc>
   <defs>
-    <mask id="m">
-      <rect x="0" y="0" width="512" height="512" fill="#000"/>
-      <rect x="95" y="95" width="250" height="250" rx="58" fill="#fff"/>
-      <rect x="155" y="155" width="274" height="274" rx="66" fill="#000"/>
-      <rect x="167" y="167" width="250" height="250" rx="58" fill="#fff"/>
-      <rect x="189" y="189" width="206" height="206" rx="36" fill="#000"/>
-    </mask>
+    <linearGradient id="layer" x1="0.046" y1="-0.026" x2="0.954" y2="1.026">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity=".12"/>
+    </linearGradient>
   </defs>
-  <g transform="translate(60,20) scale(0.390625)">
-    <rect x="0" y="0" width="512" height="512" fill="#0A0A0A" mask="url(#m)"/>
+  <g transform="translate(60 20)">
+    <rect width="200" height="200" rx="46.875" fill="#0A0A0A"/>
+    <g transform="translate(100 100) scale(3.203125) rotate(-10) translate(-13 -14.5)">
+      <rect x="6.5" y="6.5" width="13" height="16" rx="3" fill="url(#layer)"/>
+      <rect x="0.75" y="0.75" width="24.5" height="27.5" rx="5.25" fill="none" stroke="#FFFFFF" stroke-opacity=".95" stroke-width="1.5"/>
+    </g>
   </g>
   <text x="160" y="330" text-anchor="middle" font-family="'Inter','SF Pro Display',-apple-system,'Helvetica Neue',Arial,sans-serif" font-size="54" font-weight="700" letter-spacing="-1.2" fill="#0A0A0A">Backdrop</text>
 </svg>

@@ -14,6 +14,7 @@ declare module 'vue' {
   export interface GlobalComponents {
     GlassSurface: typeof import('./src/components/ui/GlassSurface.vue')['default']
     Logo: typeof import('./src/components/Logo.vue')['default']
+    McpAccess: typeof import('./src/components/mcp/McpAccess.vue')['default']
     PatternCard: typeof import('./src/components/pattern/PatternCard.vue')['default']
     PatternCodeBlock: typeof import('./src/components/pattern/PatternCodeBlock.vue')['default']
     PatternModal: typeof import('./src/components/pattern/PatternModal.vue')['default']
@@ -30,6 +31,7 @@ declare module 'vue' {
 declare global {
   const GlassSurface: typeof import('./src/components/ui/GlassSurface.vue')['default']
   const Logo: typeof import('./src/components/Logo.vue')['default']
+  const McpAccess: typeof import('./src/components/mcp/McpAccess.vue')['default']
   const PatternCard: typeof import('./src/components/pattern/PatternCard.vue')['default']
   const PatternCodeBlock: typeof import('./src/components/pattern/PatternCodeBlock.vue')['default']
   const PatternModal: typeof import('./src/components/pattern/PatternModal.vue')['default']

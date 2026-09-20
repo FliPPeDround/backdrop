@@ -6,7 +6,8 @@ body,
   padding: 0;
 }
 
-html.dark {
+/* 全站深色设计（页面底与玻璃面板均为写死的深色），不跟随系统外观 */
+html {
   color-scheme: dark;
 }
 

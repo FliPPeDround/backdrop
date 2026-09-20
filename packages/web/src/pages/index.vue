@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import McpAccess from '~/components/mcp/McpAccess.vue'
 import PatternShowcase from '~/components/pattern/PatternShowcase.vue'
 import Header from '~/layout/Header.vue'
 import Hero from '~/layout/Hero.vue'
@@ -16,6 +17,7 @@ defineOptions({
         <Hero />
       </div>
     </div>
+    <McpAccess />
     <PatternShowcase />
   </div>
   <footer class="text-sm text-gray-400 mx-auto px-4 pb-8 text-center w-full relative z-10">
