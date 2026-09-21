@@ -4,6 +4,7 @@ import type { CSSProperties } from 'vue'
 import type { CardOrigin } from './origin'
 import { generatePatternCode, PATTERN_CODE_STYLES, PATTERN_FRAMEWORKS } from '@backdrop/data'
 import { AnimatePresence, Motion } from 'motion-v'
+import { usePatternShare } from '~/composables/patternShare'
 import { readOrigin } from './origin'
 
 const props = defineProps<{
@@ -15,8 +16,23 @@ const selected = defineModel<Pattern | null>('selected', { default: null })
 
 const framework = ref<FrameworkId>('weixin')
 const codeStyle = ref<CodeStyleId>('inline')
+const { feedback: shareFeedback, sharePattern } = usePatternShare()
 const preferredMotion = usePreferredReducedMotion()
 const reduceMotion = computed(() => preferredMotion.value === 'reduce')
+
+// 结果用一条短提示反馈，按钮本身不改变尺寸，避免撑动弹窗布局
+const shareToast = computed(() => {
+  switch (shareFeedback.value) {
+    case 'shared':
+      return '已唤起系统分享'
+    case 'copied':
+      return '链接已复制'
+    case 'failed':
+      return '复制失败，请手动复制地址栏链接'
+    default:
+      return ''
+  }
+})
 
 const presented = ref(false)
 const closing = ref(false)
@@ -315,14 +331,26 @@ useEventListener(window, 'resize', () => {
               <GlassSurface simple width="100%" height="100%" :border-radius="24" :background-opacity="0.3" />
             </div>
 
-            <button
-              type="button"
-              class="text-white/80 border border-white/10 rounded-full bg-white/5 flex h-9 w-9 transition items-center right-3 top-3 justify-center absolute z-10 hover:text-white hover:bg-white/10"
-              aria-label="关闭"
-              @click="close"
-            >
-              <i i-carbon:close />
-            </button>
+            <div class="flex gap-2 items-center right-3 top-3 absolute z-10 sm:top-5">
+              <button
+                type="button"
+                class="text-white/80 border border-white/10 rounded-full bg-white/5 flex h-9 w-9 transition items-center justify-center hover:text-white hover:bg-white/10"
+                :aria-label="`分享「${activePattern.name}」`"
+                title="分享"
+                @click="sharePattern(activePattern)"
+              >
+                <i i-carbon:share />
+              </button>
+
+              <button
+                type="button"
+                class="text-white/80 border border-white/10 rounded-full bg-white/5 flex h-9 w-9 transition items-center justify-center hover:text-white hover:bg-white/10"
+                aria-label="关闭"
+                @click="close"
+              >
+                <i i-carbon:close />
+              </button>
+            </div>
 
             <div class="overscroll-contain grid grid-cols-1 max-h-[92vh] overflow-auto lg:grid-cols-[minmax(280px,0.9fr)_1.2fr]">
               <div
@@ -342,7 +370,7 @@ useEventListener(window, 'resize', () => {
                 :exit="{ opacity: 0, y: 8 }"
                 :transition="contentTransition"
               >
-                <div class="pr-10">
+                <div class="pr-10 lg:pr-24">
                   <h3
                     :id="`pattern-dialog-${activePattern.id}`"
                     class="text-xl text-white font-semibold"
@@ -405,6 +433,21 @@ useEventListener(window, 'resize', () => {
                 </div>
               </Motion>
             </div>
+
+            <Transition
+              enter-active-class="transition duration-200 ease-out"
+              enter-from-class="opacity-0 translate-y-1"
+              leave-active-class="transition duration-150 ease-in"
+              leave-to-class="opacity-0 translate-y-1"
+            >
+              <p
+                v-if="shareFeedback !== 'idle'"
+                class="text-xs text-white/90 px-3 py-1.5 border border-white/12 rounded-full bg-black/70 pointer-events-none bottom-4 left-1/2 absolute z-20 backdrop-blur-sm -translate-x-1/2 sm:bottom-5"
+                role="status"
+              >
+                {{ shareToast }}
+              </p>
+            </Transition>
           </Motion>
         </div>
       </Motion>
