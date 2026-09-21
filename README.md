@@ -72,3 +72,4 @@ pnpm mcp:test
 ## 致谢
 
 项目的灵感与背景样式来源于 [pattern-craft](https://github.com/megh-bari/pattern-craft)，感谢 [@megh-bari](https://github.com/megh-bari) 的出色工作。
+项目图标来自 [@Lin](./brand/backdrop/icon-dark.svg)
