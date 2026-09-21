@@ -62,8 +62,10 @@ pnpm mcp:test
 
 提供两个工具：
 
-- `search_backdrops`：按中文或英文描述检索，返回候选的 `id` / `name` / `nameZh` / `category`，不含代码。颜色会同时与图案真实的 CSS 值比对，所以「柔和一点的蓝色渐变」能命中名字里没有 blue 的 `Azure Depths`。
-- `get_backdrop_code`：按 `id`（或完整英文名）取单个图案的代码，`framework` 选微信原生 / uni-app / Taro / Wevu，`style` 选内联 / 样式分离 / Tailwind。关键词歧义时返回候选列表而不是猜测。
+- `search_patterns`：按中文或英文描述检索，返回候选的 `id` / `name` / `nameZh` / `category` / `tags` / `url` 和命中的查询词，不含代码。颜色会同时与图案真实的 CSS 值比对，所以「柔和一点的蓝色渐变」能命中名字里没有 blue 的 `Azure Depths`。结果多时用 `limit` / `offset` 翻页。
+- `get_pattern_code`：按 `id`（或完整中文名 / 英文名）取单个图案的代码，`framework` 选微信原生 / uni-app / Taro / Wevu（默认微信原生），`style` 选内联 / 样式分离 / Tailwind（默认内联）。只做精确匹配：认不出会提示先用 `search_patterns`，不会猜一个近似图案。
+
+两个工具都是只读、幂等的，返回结构化数据加一份文本摘要；`id` 忽略大小写、空格和连字符。搜索结果里的 `url` 指向本站的 `?pattern=<id>` 深链，点开就能看真机预览效果。
 
 ## License
 

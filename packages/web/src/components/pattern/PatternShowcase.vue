@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Pattern } from '@backdrop/data'
 import type { CardOrigin } from './origin'
+import { gridPatterns } from '@backdrop/data'
 import { PATTERN_CATEGORIES, usePatternBrowser } from '@backdrop/shared'
 import { Motion } from 'motion-v'
 import { useFavourites } from '~/composables/favourites'
@@ -9,9 +10,26 @@ import { readOrigin } from './origin'
 
 const { ids } = useFavourites()
 const { activeCategory, filteredPatterns } = usePatternBrowser({ favouriteIds: ids })
-const selected = ref<Pattern | null>(null)
 const origin = ref<CardOrigin | null>(null)
 const originEl = shallowRef<HTMLElement | null>(null)
+
+// 深链 ?pattern=<id>：MCP 的搜索结果带着预览链接回到这里，直接打开对应图案
+const LINKED_ID = typeof window === 'undefined'
+  ? null
+  : new URLSearchParams(window.location.search).get('pattern')
+const selected = ref<Pattern | null>(
+  gridPatterns.find(pattern => pattern.id === LINKED_ID) ?? null,
+)
+
+watch(selected, (pattern) => {
+  if (typeof window === 'undefined')
+    return
+  const url = new URL(window.location.href)
+  if (pattern)
+    url.searchParams.set('pattern', pattern.id)
+  else url.searchParams.delete('pattern')
+  window.history.replaceState(null, '', url)
+})
 
 const BATCH = 12
 const REVEAL_Y = 14

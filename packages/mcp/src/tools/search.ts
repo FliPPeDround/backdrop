@@ -1,5 +1,6 @@
 import type { Query, SearchHit } from '../index/pattern-index'
 import { buildQuery, PATTERN_INDEX, rankPatterns } from '../index/pattern-index'
+import { patternUrl } from '../site'
 
 export const DEFAULT_LIMIT = 15
 export const MAX_LIMIT = 40
@@ -8,13 +9,33 @@ export interface SearchArgs {
   query?: string
   category?: string
   limit?: number
+  offset?: number
+}
+
+export interface SearchResult {
+  id: string
+  name: string
+  nameZh: string
+  category: string
+  /** What the CSS and the palette prove: radial, mask, dark, blue… */
+  tags: string[]
+  /** Preview link, so a user can look at the pattern before committing to it. */
+  url: string
+  /** Query words this entry satisfied, so the ranking is auditable instead of a black box. */
+  matched: string[]
 }
 
 export interface SearchOutput {
-  count: number
-  truncated: boolean
-  note?: string
-  results: Array<{ id: string, name: string, nameZh: string, category: string }>
+  /** Patterns matching the whole query — not the number returned. */
+  total: number
+  /** How many of the matches satisfied every query unit; the rest are partial. */
+  fullMatches: number
+  returned: number
+  offset: number
+  hasMore: boolean
+  results: SearchResult[]
+  /** Only present when the caller needs to know something; empty is the happy path. */
+  hints: string[]
 }
 
 /** A query carrying nothing the index can act on would otherwise browse silently. */
@@ -22,26 +43,27 @@ function isHollow(query: Query): boolean {
   return query.groups.length === 0 && query.latin.length === 0 && query.categories.length === 0
 }
 
-function buildNote(hits: SearchHit[], query: Query, browsed: boolean): string | undefined {
-  const unknown = query.unknown.length > 0
-    ? ` Not indexed as description(s): ${query.unknown.join(', ')}.`
-    : ''
+function buildHints(hits: SearchHit[], query: Query, browsed: boolean): string[] {
+  const hints: string[] = []
+
+  if (query.unknown.length > 0)
+    hints.push(`未收录的查询词：${query.unknown.join('、')}。排序只用了其余的词。`)
 
   if (hits.length > 0) {
-    if (!browsed && !unknown)
-      return undefined
-    return browsed
-      ? `No description given, so this lists the library in source order. Pass \`query\` to search it.${unknown}`
-      : `Some words were not indexed, so the ranking used the rest.${unknown}`
+    if (browsed)
+      hints.push('没有给 query，这里是按库内顺序列出的部分图案。用 query 描述想要的背景。')
+    return hints
   }
 
-  return query.raw
-    ? `No pattern matched.${unknown} Retry with fewer terms, or drop \`category\`.`
-    : 'No pattern carries that category. Retry without `category`.'
+  hints.push(query.raw
+    ? '没有匹配的图案。可以少给几个词，或者去掉 category。'
+    : '这个分类下没有图案。去掉 category 再试。')
+  return hints
 }
 
-export function searchBackdrops(args: SearchArgs): SearchOutput {
+export function searchPatterns(args: SearchArgs): SearchOutput {
   const limit = Math.min(Math.max(Math.trunc(args.limit ?? DEFAULT_LIMIT), 1), MAX_LIMIT)
+  const offset = Math.max(Math.trunc(args.offset ?? 0), 0)
   const scoped = args.category
     ? PATTERN_INDEX.filter(entry => entry.category === args.category)
     : PATTERN_INDEX
@@ -50,18 +72,25 @@ export function searchBackdrops(args: SearchArgs): SearchOutput {
   const browsed = isHollow(query)
   const hits = browsed
     // Browsing without a description still has to stay bounded.
-    ? scoped.map(entry => ({ entry, score: 0, coverage: 1 }))
+    ? scoped.map(entry => ({ entry, score: 0, coverage: 1, matched: [] }))
     : rankPatterns(scoped, query)
+  const page = hits.slice(offset, offset + limit)
 
   return {
-    count: hits.length,
-    truncated: hits.length > limit,
-    note: buildNote(hits, query, browsed),
-    results: hits.slice(0, limit).map(hit => ({
+    total: hits.length,
+    fullMatches: browsed ? 0 : hits.filter(hit => hit.coverage === 1).length,
+    returned: page.length,
+    offset,
+    hasMore: offset + page.length < hits.length,
+    hints: buildHints(hits, query, browsed),
+    results: page.map(hit => ({
       id: hit.entry.id,
       name: hit.entry.name,
       nameZh: hit.entry.nameZh,
       category: hit.entry.category,
+      tags: hit.entry.tags,
+      url: patternUrl(hit.entry.id),
+      matched: hit.matched,
     })),
   }
 }

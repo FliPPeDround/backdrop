@@ -320,7 +320,7 @@ export const gridPatterns: Pattern[] = [
     },
   },
   {
-    id: 'orchid -depths',
+    id: 'orchid-depths',
     name: 'Orchid  Depths',
     category: 'decorative',
     badge: 'New',
@@ -644,7 +644,7 @@ export const gridPatterns: Pattern[] = [
     },
   },
   {
-    id: 'diagonal-fade-bottom-grid-Left',
+    id: 'diagonal-fade-bottom-grid-left',
     name: 'Diagonal Fade Bottom Grid Left',
     category: 'geometric',
     badge: 'New',
@@ -781,7 +781,7 @@ export const gridPatterns: Pattern[] = [
     },
   },
   {
-    id: 'diagonal-cross-Bottom-right-fade-grid',
+    id: 'diagonal-cross-bottom-right-fade-grid',
     name: 'Diagonal Cross Bottom Right Fade Grid',
     category: 'geometric',
     containerStyle,
@@ -798,7 +798,7 @@ export const gridPatterns: Pattern[] = [
     },
   },
   {
-    id: 'diagonal-cross-Bottom-left-fade-grid',
+    id: 'diagonal-cross-bottom-left-fade-grid',
     name: 'Diagonal Cross Bottom Left Fade Grid',
     category: 'geometric',
     containerStyle,
@@ -2239,7 +2239,7 @@ export const gridPatterns: Pattern[] = [
     },
   },
   {
-    id: 'soft lavender-center-glow',
+    id: 'soft-lavender-center-glow',
     name: 'Soft Lavender Center Glow',
     category: 'effects',
     badge: 'New',
@@ -3081,7 +3081,7 @@ export const gridPatterns: Pattern[] = [
     },
   },
   {
-    id: 'diagonal-red/blue-glow',
+    id: 'diagonal-red-blue-glow',
     name: 'Diagonal Grid - Red/Blue Glow',
     category: 'geometric',
     badge: 'New',
@@ -3097,7 +3097,7 @@ export const gridPatterns: Pattern[] = [
     },
   },
   {
-    id: 'diagonal-electric erange',
+    id: 'diagonal-electric-orange',
     name: 'Diagonal Grid - Electric Orange',
     category: 'geometric',
     badge: 'New',

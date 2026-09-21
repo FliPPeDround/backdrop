@@ -2,7 +2,7 @@ import type { Pattern } from '../../../data/src/index'
 import type { PatternFacets } from './facets'
 import type { TermGroup } from './synonyms'
 import { gridPatterns } from '../../../data/src/index'
-import { computeFacets } from './facets'
+import { computeEffectTags, computeFacets } from './facets'
 import { PATTERN_META } from './pattern-meta'
 import { expandQuery, matchCategories, TERM_GROUPS, tokenize } from './synonyms'
 
@@ -36,12 +36,28 @@ export interface IndexedPattern {
   category: Pattern['category']
   pattern: Pattern
   facets: PatternFacets
+  /** Styles the CSS proves directly (radial, mask, animated…) plus colour/tone/mood tags. */
+  tags: string[]
   nameTokens: Set<string>
   idTokens: Set<string>
   descriptionTokens: Set<string>
   keywords: Set<string>
   /** Directional kinds in the name, which separate `Grid Left` from `Grid Right`. */
   positions: Set<string>
+}
+
+/**
+ * Ids, English names and Chinese names all funnel through this before lookup. Callers are
+ * language models: they re-case, collapse spaces and swap `_`/`/` for `-` without meaning to,
+ * and an identifier that only resolves byte-for-byte is an identifier they cannot use.
+ */
+export function normalizeLookup(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[\s_/]+/g, '-')
+    .replace(/[^\p{Letter}\p{Number}-]+/gu, '')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
 }
 
 export function stem(token: string): string {
@@ -64,13 +80,16 @@ function indexPattern(pattern: Pattern): IndexedPattern {
   const meta = PATTERN_META[pattern.id]
   const tokens = tokenize(`${pattern.name} ${pattern.id}`)
 
+  const facets = computeFacets(pattern)
+
   return {
     id: pattern.id,
     name: pattern.name,
     nameZh: meta?.nameZh ?? '',
     category: pattern.category,
     pattern,
-    facets: computeFacets(pattern),
+    facets,
+    tags: [...new Set([...computeEffectTags(pattern), ...facets.colours, facets.tone, facets.mood])].sort(),
     nameTokens: stemmedSet(pattern.name),
     idTokens: stemmedSet(pattern.id),
     descriptionTokens: stemmedSet(pattern.description ?? ''),
@@ -84,15 +103,35 @@ function indexPattern(pattern: Pattern): IndexedPattern {
 
 export const PATTERN_INDEX: IndexedPattern[] = gridPatterns.map(indexPattern)
 
-const BY_ID = new Map(PATTERN_INDEX.map(entry => [entry.id, entry]))
-const BY_NAME = new Map(PATTERN_INDEX.map(entry => [entry.name.toLowerCase(), entry]))
+const BY_ID = new Map(PATTERN_INDEX.map(entry => [normalizeLookup(entry.id), entry]))
+const BY_NAME = new Map(PATTERN_INDEX.map(entry => [normalizeLookup(entry.name), entry]))
+
+const BY_NAME_ZH = new Map<string, IndexedPattern[]>()
+for (const entry of PATTERN_INDEX) {
+  const key = normalizeLookup(entry.nameZh)
+  if (!key)
+    continue
+  const bucket = BY_NAME_ZH.get(key)
+  if (bucket)
+    bucket.push(entry)
+  else BY_NAME_ZH.set(key, [entry])
+}
 
 export function indexById(id: string): IndexedPattern | undefined {
-  return BY_ID.get(id)
+  return BY_ID.get(normalizeLookup(id))
 }
 
 export function indexByName(name: string): IndexedPattern | undefined {
-  return BY_NAME.get(name.trim().toLowerCase())
+  return BY_NAME.get(normalizeLookup(name))
+}
+
+/**
+ * Chinese display names are composed from a shared term table rather than translated one by
+ * one, so this stays plural: the generator disambiguates today, and a regression there must
+ * degrade to "pick one" instead of silently serving the first of two identical-looking names.
+ */
+export function indexByNameZh(nameZh: string): IndexedPattern[] {
+  return BY_NAME_ZH.get(normalizeLookup(nameZh)) ?? []
 }
 
 export interface Query {
@@ -173,23 +212,34 @@ export interface SearchHit {
    *  pattern matching both "soft" and "blue" above one matching only "blue" harder.
    */
   coverage: number
+  /** The query units this pattern actually satisfied, so a caller can see why it came back. */
+  matched: string[]
 }
 
 function scorePattern(entry: IndexedPattern, query: Query): SearchHit | undefined {
-  const units: Array<(entry: IndexedPattern) => number> = [
-    ...query.groups.map(group => (target: IndexedPattern) => groupWeight(group, target)),
-    ...query.latin.map(token => (target: IndexedPattern) => tokenWeight(token, target)),
+  const units: Array<{ label: string, weight: (entry: IndexedPattern) => number }> = [
+    ...query.groups.map(group => ({
+      label: group.zh[0] ?? group.en[0] ?? '',
+      weight: (target: IndexedPattern) => groupWeight(group, target),
+    })),
+    ...query.latin.map(token => ({
+      label: token,
+      weight: (target: IndexedPattern) => tokenWeight(token, target),
+    })),
   ]
   if (units.length === 0)
-    return { entry, score: 0, coverage: 1 }
+    return { entry, score: 0, coverage: 1, matched: [] }
 
   let score = 0
   let matched = 0
+  const labels: string[] = []
   for (const unit of units) {
-    const weight = unit(entry)
+    const weight = unit.weight(entry)
     if (weight > 0) {
       matched++
       score += weight
+      if (unit.label)
+        labels.push(unit.label)
     }
   }
   if (matched === 0)
@@ -203,16 +253,18 @@ function scorePattern(entry: IndexedPattern, query: Query): SearchHit | undefine
   }
 
   // A pattern nobody asked a direction about should not be outranked by its own directional
-  // siblings; conversely when a direction is asked for, honour the patterns that state one.
+  // siblings; conversely, when a direction is asked for, a pattern that states it is better
+  // evidence than one that is merely silent about where it sits.
   if (query.positions.length === 0) {
     if (entry.positions.size > 0)
       score *= 0.9
   }
-  else if (entry.positions.size > 0) {
-    score *= 1.1
+  else {
+    const stated = [...entry.positions].filter(kind => query.positions.includes(kind)).length
+    score *= stated === 0 ? 0.8 : 1 + 0.15 * (stated / query.positions.length)
   }
 
-  return { entry, score, coverage: matched / units.length }
+  return { entry, score, coverage: matched / units.length, matched: labels }
 }
 
 export function rankPatterns(entries: IndexedPattern[], query: Query): SearchHit[] {

@@ -1,11 +1,12 @@
-import type { CodeStyleId, FrameworkId } from '../../../data/src/index'
+import type { CodeStyleId, FrameworkId, PatternCodeFile } from '../../../data/src/index'
 import type { IndexedPattern } from '../index/pattern-index'
-import { generatePatternCode } from '../../../data/src/index'
-import { buildQuery, indexById, indexByName, PATTERN_INDEX, rankPatterns } from '../index/pattern-index'
+import { generatePatternCode, PATTERN_CODE_STYLES, PATTERN_FRAMEWORKS } from '../../../data/src/index'
+import { indexById, indexByName, indexByNameZh } from '../index/pattern-index'
+import { patternUrl } from '../site'
 
 export interface GetCodeArgs {
   id: string
-  framework: FrameworkId
+  framework?: FrameworkId
   style?: CodeStyleId
 }
 
@@ -15,17 +16,36 @@ export interface Candidate {
   nameZh: string
 }
 
-export type Match = { kind: 'found', text: string }
+export interface ResolvedPattern {
+  id: string
+  name: string
+  nameZh: string
+  url: string
+}
+
+export type Match
+  = | {
+    kind: 'found'
+    pattern: ResolvedPattern
+    framework: FrameworkId
+    style: CodeStyleId
+    files: PatternCodeFile[]
+    text: string
+  }
   | { kind: 'ambiguous', candidates: Candidate[] }
   | { kind: 'not-found', suggestion: string }
 
-/** How far ahead the leader must be before a keyword hit is served without asking. */
-const AMBIGUITY_RATIO = 1.5
+export const DEFAULT_FRAMEWORK: FrameworkId = 'weixin'
+export const DEFAULT_STYLE: CodeStyleId = 'inline'
 
-function render(entry: IndexedPattern, framework: FrameworkId, style: CodeStyleId): string {
-  const files = generatePatternCode(entry.pattern, framework, style)
+/** Framework ids and style ids are what the caller passes through; labels are what it means. */
+export const FRAMEWORK_OPTIONS = PATTERN_FRAMEWORKS.map(option => option.id)
+export const STYLE_OPTIONS = PATTERN_CODE_STYLES.map(option => option.id)
+
+function render(entry: IndexedPattern, framework: FrameworkId, style: CodeStyleId, files: PatternCodeFile[]): string {
   const header = [
     `Backdrop: ${entry.name}${entry.nameZh ? ` (${entry.nameZh})` : ''}`,
+    `Preview: ${patternUrl(entry.id)}`,
     `Category: ${entry.category} · Framework: ${framework} · Style: ${style}`,
   ].join('\n')
 
@@ -35,39 +55,49 @@ function render(entry: IndexedPattern, framework: FrameworkId, style: CodeStyleI
   ].join('')
 }
 
+function found(entry: IndexedPattern, framework: FrameworkId, style: CodeStyleId): Match {
+  const files = generatePatternCode(entry.pattern, framework, style)
+  return {
+    kind: 'found',
+    pattern: { id: entry.id, name: entry.name, nameZh: entry.nameZh, url: patternUrl(entry.id) },
+    framework,
+    style,
+    files,
+    text: render(entry, framework, style, files),
+  }
+}
+
+function candidatesOf(entries: IndexedPattern[]): Candidate[] {
+  return entries.map(entry => ({
+    id: entry.id,
+    name: entry.name,
+    nameZh: entry.nameZh,
+  }))
+}
+
 /**
- * Exact id → exact name → keywords. A keyword search that lands on several looks returns
- * those candidates instead of guessing, because the caller has a user to ask.
+ * Exact id → exact English name → exact Chinese name. Nothing is guessed: a keyword or a
+ * partial name is the job of `search_patterns`, and if a Chinese display name is shared the
+ * caller gets the candidates rather than an arbitrary winner.
  */
-export function getBackdropCode(args: GetCodeArgs): Match {
+export function getPatternCode(args: GetCodeArgs): Match {
   const wanted = args.id.trim()
-  const style = args.style ?? 'inline'
+  const style = args.style ?? DEFAULT_STYLE
+  const framework = args.framework ?? DEFAULT_FRAMEWORK
 
   const exact = indexById(wanted) ?? indexByName(wanted)
   if (exact)
-    return { kind: 'found', text: render(exact, args.framework, style) }
+    return found(exact, framework, style)
 
-  const hits = rankPatterns(PATTERN_INDEX, buildQuery(wanted)).slice(0, 5)
-  const [leader, runner] = hits
+  const byNameZh = indexByNameZh(wanted)
+  if (byNameZh.length === 1)
+    return found(byNameZh[0]!, framework, style)
 
-  if (!leader) {
-    return {
-      kind: 'not-found',
-      suggestion: `"${wanted}" matched nothing. Call search_backdrops first and pass back an exact id.`,
-    }
-  }
-
-  const decisive = !runner
-    || (leader.coverage === 1 && leader.score >= runner.score * AMBIGUITY_RATIO)
-  if (decisive)
-    return { kind: 'found', text: render(leader.entry, args.framework, style) }
+  if (byNameZh.length > 1)
+    return { kind: 'ambiguous', candidates: candidatesOf(byNameZh) }
 
   return {
-    kind: 'ambiguous',
-    candidates: hits.map(hit => ({
-      id: hit.entry.id,
-      name: hit.entry.name,
-      nameZh: hit.entry.nameZh,
-    })),
+    kind: 'not-found',
+    suggestion: `"${wanted}" 不是已知的图案 id 或名称，没有生成代码。先调用 search_patterns，再把它返回的精确 id 传进来。`,
   }
 }

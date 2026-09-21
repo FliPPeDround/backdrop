@@ -554,7 +554,7 @@ export default function Page() {
 export function generatePatternCode(
   pattern: Pattern,
   framework: FrameworkId,
-  codeStyle: CodeStyleId = 'separated',
+  codeStyle: CodeStyleId = 'inline',
 ): PatternCodeFile[] {
   if (codeStyle === 'tailwind')
     return generateTailwind(pattern, framework)

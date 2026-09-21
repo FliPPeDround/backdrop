@@ -20,9 +20,34 @@ describe('pattern data', () => {
     }
   })
 
+  it('gives every pattern a Chinese name a caller can say back', () => {
+    const seen = new Map<string, string>()
+    for (const pattern of gridPatterns) {
+      const { nameZh } = PATTERN_META[pattern.id]!
+      const clash = seen.get(nameZh)
+      assert.equal(clash, undefined, `${pattern.id} and ${clash} share the display name ${nameZh}`)
+      seen.set(nameZh, pattern.id)
+      assert.ok(nameZh.trim().length >= 2, `${pattern.id} has the one-character name ${nameZh}`)
+    }
+  })
+
+  it('keeps category slugs out of the searchable keywords', () => {
+    // Category is a filing label, not a description: matching it as content is what made
+    // 「渐变」 return radial glows filed under `gradients`.
+    for (const pattern of gridPatterns) {
+      const keywords = PATTERN_META[pattern.id]!.keywords
+      assert.ok(!keywords.includes(pattern.category), `${pattern.id} indexes its own category`)
+    }
+  })
+
   it('reads a colour out of nearly every pattern', () => {
     const colourless = gridPatterns.filter(pattern => computeFacets(pattern).colours.length === 0)
     assert.ok(colourless.length <= 5, `too many patterns without colour: ${colourless.map(p => p.id)}`)
+  })
+
+  it('derives a tag list from the CSS, not from the name', () => {
+    for (const entry of PATTERN_INDEX)
+      assert.ok(entry.tags.length > 0, `${entry.id} has no tags`)
   })
 })
 
@@ -68,5 +93,13 @@ describe('generatePatternCode', () => {
       }
     }
     assert.ok(longest < 4000, `largest generated payload is ${longest} chars`)
+  })
+
+  it('defaults to the same style the UI and the tool default to', () => {
+    const pattern = gridPatterns[0]!
+    assert.deepEqual(
+      generatePatternCode(pattern, 'weixin'),
+      generatePatternCode(pattern, 'weixin', 'inline'),
+    )
   })
 })

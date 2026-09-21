@@ -204,7 +204,7 @@ watch(selected, (pattern) => {
   framework.value = 'weixin'
   presented.value = true
   startEnter()
-})
+}, { immediate: true })
 
 watch(presented, (isOpen) => {
   if (typeof document === 'undefined')
