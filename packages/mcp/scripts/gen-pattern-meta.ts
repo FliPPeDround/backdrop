@@ -125,7 +125,7 @@ function buildEntry(pattern: Pattern) {
     ...namedColours,
     ...facets.colours
       .map(colour => FACET_ZH.get(`colour:${colour}`))
-      .filter((term): term is string => Boolean(term) && !namedColours.includes(term)),
+      .filter((term): term is string => Boolean(term) && !namedColours.includes(term!)),
   ]).slice(0, 2)
 
   const position = composePosition(positionKinds)
