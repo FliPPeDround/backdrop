@@ -108,7 +108,7 @@ function buildEntry(pattern: Pattern) {
   }
 
   const facetKeywordTerms = [
-    ...facets.colours.map(colour => FACET_ZH.get(`colour:${colour}`)),
+    ...pattern.color.map(colour => FACET_ZH.get(`colour:${colour}`)),
     FACET_ZH.get(`tone:${facets.tone}`),
     FACET_ZH.get(`mood:${facets.mood}`),
   ].filter((term): term is string => Boolean(term))
@@ -123,7 +123,7 @@ function buildEntry(pattern: Pattern) {
   // that only the CSS reveals do not: a pile of adjectives reads like a machine wrote it.
   const colours = dedupeContainment([
     ...namedColours,
-    ...facets.colours
+    ...pattern.color
       .map(colour => FACET_ZH.get(`colour:${colour}`))
       .filter((term): term is string => Boolean(term) && !namedColours.includes(term!)),
   ]).slice(0, 2)

@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict'
-import { generatePatternCode, gridPatterns, PATTERN_CODE_STYLES, PATTERN_FRAMEWORKS } from '@backdrop/data'
+import { generatePatternCode, gridPatterns, PATTERN_CODE_STYLES, PATTERN_COLOR_ORDER, PATTERN_FRAMEWORKS } from '@backdrop/data'
 import { describe, it } from 'vitest'
-import { computeFacets } from '../src/index/facets'
 import { PATTERN_INDEX } from '../src/index/pattern-index'
 import { PATTERN_META } from '../src/index/pattern-meta'
 
@@ -41,8 +40,16 @@ describe('pattern data', () => {
   })
 
   it('reads a colour out of nearly every pattern', () => {
-    const colourless = gridPatterns.filter(pattern => computeFacets(pattern).colours.length === 0)
+    const colourless = gridPatterns.filter(pattern => pattern.color.length === 0)
     assert.ok(colourless.length <= 5, `too many patterns without colour: ${colourless.map(p => p.id)}`)
+  })
+
+  it('orders each pattern\'s colours by the shared hue order the filters list them in', () => {
+    for (const pattern of gridPatterns) {
+      const ranks = pattern.color.map(family => PATTERN_COLOR_ORDER.indexOf(family))
+      const ascending = ranks.every((rank, index) => index === 0 || rank > ranks[index - 1]!)
+      assert.ok(ascending, `${pattern.id} carries ${pattern.color.join('+')} out of hue order`)
+    }
   })
 
   it('derives a tag list from the CSS, not from the name', () => {

@@ -22,7 +22,8 @@
  */
 
 import type { CSSProperties } from 'vue'
-import type { Pattern } from './types/pattern'
+import type { Pattern, PatternSource } from './types/pattern'
+import { computePatternColor } from './color'
 
 export const patternContainerStyle: CSSProperties = {
   minHeight: '100vh',
@@ -39,7 +40,7 @@ export const patternLayerStyle: CSSProperties = {
 const containerStyle = patternContainerStyle
 const positionStyle = patternLayerStyle
 
-export const gridPatterns: Pattern[] = [
+const patternSource: PatternSource[] = [
   {
     id: 'beach',
     name: 'Beach',
@@ -4546,3 +4547,12 @@ export const gridPatterns: Pattern[] = [
     },
   },
 ]
+
+/**
+ * `color` is derived rather than hand-written per entry: the CSS a pattern ships is the
+ * only copy of its palette, and a tag someone has to remember is a tag that drifts.
+ */
+export const gridPatterns: Pattern[] = patternSource.map(source => ({
+  ...source,
+  color: computePatternColor(source.style),
+}))

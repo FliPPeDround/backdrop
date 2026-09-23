@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Pattern } from '@backdrop/data'
+import type { PatternColorChoice } from '@backdrop/shared'
 import type { CardOrigin } from './origin'
 import { gridPatterns } from '@backdrop/data'
 import { PATTERN_CATEGORIES, usePatternBrowser } from '@backdrop/shared'
@@ -9,7 +10,7 @@ import { useProgressiveReveal } from '~/composables/progressiveReveal'
 import { readOrigin } from './origin'
 
 const { ids } = useFavourites()
-const { activeCategory, filteredPatterns } = usePatternBrowser({ favouriteIds: ids })
+const { activeCategory, activeColor, colors, filteredPatterns } = usePatternBrowser({ favouriteIds: ids })
 const origin = ref<CardOrigin | null>(null)
 const originEl = shallowRef<HTMLElement | null>(null)
 
@@ -58,6 +59,23 @@ function revealTransition(index: number) {
   return (reduceMotion.value ? fadeTransitions : springTransitions)[index % BATCH]
 }
 
+// 计数为 0 的颜色点了只会清空网格，置灰并拦下点击比点了再看空态省事；选中的那颗不置灰。
+function isDimmedColor(color: PatternColorChoice) {
+  return color.count === 0 && color.id !== activeColor.value
+}
+
+function pickColor(color: PatternColorChoice) {
+  if (isDimmedColor(color))
+    return
+  activeColor.value = color.id
+}
+
+const emptyHint = computed(() =>
+  activeCategory.value === 'favourites' && ids.value.length === 0
+    ? '还没有收藏的背景，点卡片左上角星星试试'
+    : '这个分类和颜色的组合下没有背景，换个筛选试试',
+)
+
 function onSelect(pattern: Pattern, el: HTMLElement) {
   originEl.value = el
   origin.value = readOrigin(el)
@@ -76,24 +94,53 @@ function onSelect(pattern: Pattern, el: HTMLElement) {
       </p>
     </div>
 
-    <div class="mb-6 flex flex-wrap gap-2 items-center justify-center">
-      <GlassSurface
-        v-for="category in PATTERN_CATEGORIES"
-        :key="category.id"
-        width="auto"
-        :height="40"
-        :border-radius="20"
-        :background-opacity="activeCategory === category.id ? 0.24 : 0.08"
-        class-name="cursor-pointer px-3 select-none"
-        @click="activeCategory = category.id"
-      >
-        <span
-          class="text-sm whitespace-nowrap"
-          :class="activeCategory === category.id ? 'text-white' : 'text-white/65'"
+    <div class="mb-6 flex flex-col gap-2.5 items-center">
+      <div class="flex flex-wrap gap-2 items-center justify-center">
+        <span class="text-xs text-white/40 shrink-0 w-7">类别</span>
+        <GlassSurface
+          v-for="category in PATTERN_CATEGORIES"
+          :key="category.id"
+          width="auto"
+          :height="40"
+          :border-radius="20"
+          :background-opacity="activeCategory === category.id ? 0.24 : 0.08"
+          class-name="cursor-pointer px-3 select-none"
+          @click="activeCategory = category.id"
         >
-          {{ category.label }}
-        </span>
-      </GlassSurface>
+          <span
+            class="text-sm whitespace-nowrap"
+            :class="activeCategory === category.id ? 'text-white' : 'text-white/65'"
+          >
+            {{ category.label }}
+          </span>
+        </GlassSurface>
+      </div>
+
+      <div class="flex flex-wrap gap-1.5 items-center justify-center">
+        <span class="text-xs text-white/40 shrink-0 w-7">颜色</span>
+        <GlassSurface
+          v-for="color in colors"
+          :key="color.id"
+          width="auto"
+          :height="32"
+          :border-radius="16"
+          :background-opacity="activeColor === color.id ? 0.24 : 0.08"
+          class-name="px-2.5 select-none"
+          :class="isDimmedColor(color) ? 'opacity-40' : 'cursor-pointer'"
+          @click="pickColor(color)"
+        >
+          <span
+            class="text-xs flex gap-1.5 whitespace-nowrap items-center"
+            :class="activeColor === color.id ? 'text-white' : 'text-white/65'"
+          >
+            <i
+              class="rounded-full shrink-0 h-2.5 w-2.5 ring-1 ring-white/45"
+              :style="{ background: color.swatch }"
+            />
+            {{ color.label }}
+          </span>
+        </GlassSurface>
+      </div>
     </div>
 
     <p class="text-sm text-white/50 mb-5 text-center">
@@ -127,7 +174,7 @@ function onSelect(pattern: Pattern, el: HTMLElement) {
       id="pattern-grid"
       class="text-white/60 px-6 py-16 text-center border border-white/10 rounded-2xl bg-white/5"
     >
-      还没有收藏的背景，点卡片左上角星星试试
+      {{ emptyHint }}
     </div>
 
     <PatternModal

@@ -177,7 +177,7 @@ function groupWeight(group: TermGroup, entry: IndexedPattern): number {
     best = Math.max(best, WEIGHT.id)
   if (english.some(token => entry.descriptionTokens.has(token)))
     best = Math.max(best, WEIGHT.description)
-  if (group.facet?.kind === 'colour' && entry.facets.colours.includes(group.facet.value as HueValue))
+  if (group.facet?.kind === 'colour' && entry.facets.colours.includes(group.facet.value))
     best = Math.max(best, WEIGHT.colourFacet)
   if (group.facet && group.facet.kind !== 'colour'
     && (entry.facets.tone === group.facet.value || entry.facets.mood === group.facet.value)) {
@@ -186,8 +186,6 @@ function groupWeight(group: TermGroup, entry: IndexedPattern): number {
 
   return best
 }
-
-type HueValue = PatternFacets['colours'][number]
 
 function tokenWeight(token: string, entry: IndexedPattern): number {
   const stemmed = stem(token)

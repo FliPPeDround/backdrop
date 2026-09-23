@@ -8,17 +8,7 @@
  *  3. meta generation    — `zh[0]` is the display term used to compose a pattern's Chinese name
  */
 
-export type HueFacet
-  = | 'red'
-    | 'orange'
-    | 'yellow'
-    | 'green'
-    | 'cyan'
-    | 'blue'
-    | 'purple'
-    | 'pink'
-    | 'brown'
-    | 'monochrome'
+import type { PatternColor } from '../../../data/src/index'
 
 export interface TermGroup {
   /** Chinese surface forms recognised in queries; `zh[0]` is the display form. */
@@ -29,7 +19,7 @@ export interface TermGroup {
    * Also match against values computed from the pattern's own CSS. Only colour/tone/mood
    * are computable; every other meaning rides on `en` tokens.
    */
-  facet?: { kind: 'colour' | 'tone' | 'mood', value: string }
+  facet?: { kind: 'colour', value: PatternColor } | { kind: 'tone' | 'mood', value: string }
   /**
    * Directional kinds this group asks for — an array because 左上 names two.
    * Drives positional disambiguation at scoring time.

@@ -1,4 +1,6 @@
 export type { CodeStyleId, FrameworkId, PatternCodeFile, PatternCodeLang } from './codegen'
 export { generatePatternCode, PATTERN_CODE_STYLES, PATTERN_FRAMEWORKS } from './codegen'
+export type { ColorSwatch, PatternColor } from './color'
+export { PATTERN_COLOR_ORDER, readSwatches } from './color'
 export { gridPatterns, patternContainerStyle, patternLayerStyle } from './patterns'
 export type { Pattern } from './types/pattern'
