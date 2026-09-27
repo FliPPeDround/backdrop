@@ -47,7 +47,5 @@ jobs:
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-          INPUT_MESSAGE: ${{ inputs.message }}
-        run: |
-          message="${INPUT_MESSAGE:-${GITHUB_REF_NAME}}"
-          pnpm deploy:web -- --message "$message"
+          NETLIFY_DEPLOY_MESSAGE: ${{ inputs.message || github.ref_name }}
+        run: pnpm deploy:web
