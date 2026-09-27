@@ -20,95 +20,33 @@ const index = computed(() => {
 </script>
 
 <template>
-  <view class="seg">
-    <view v-if="props.title" class="seg-label">
+  <view class="mb-[28rpx]">
+    <view v-if="props.title" class="mb-[12rpx] ml-[4rpx] text-[22rpx] font-600 tracking-[0.4rpx] text-ink-3">
       <text>{{ props.title }}</text>
     </view>
-    <view class="seg-track">
+    <view
+      class="relative p-[5rpx] rounded-full bg-[rgba(255,255,255,0.09)]
+        shadow-[inset_0_1rpx_3rpx_rgba(0,0,0,0.28)]"
+    >
       <!-- 等宽分段，位移用百分比即可，无需量取节点位置 -->
       <view
-        class="seg-thumb"
+        class="absolute top-[5rpx] bottom-[5rpx] left-[5rpx] rounded-full bg-white
+          shadow-[0_4rpx_14rpx_rgba(0,0,0,0.3)] [transition:transform_440ms_var(--spring)]
+          will-change-transform motion-reduce:transition-none"
         :style="{ width: `${100 / count}%`, transform: `translateX(${index * 100}%)` }"
       />
-      <view class="seg-items">
+      <view class="relative flex">
         <view
           v-for="(item, i) in props.items"
           :key="item.id"
-          class="seg-item press"
+          class="flex flex-1 items-center justify-center py-[18rpx] press"
           hover-class="press--on"
           :hover-stay-time="60"
           @tap="emit('change', item.id)"
         >
-          <text class="seg-text" :class="i === index ? 'seg-text--on' : ''">{{ item.label }}</text>
+          <text class="text-[24rpx] font-500 tracking-[0.2rpx] text-[rgba(255,255,255,0.7)] [transition:color_300ms_var(--spring)]" :class="i === index ? 'on:text-coal on:font-600' : ''">{{ item.label }}</text>
         </view>
       </view>
     </view>
   </view>
 </template>
-
-<style scoped>
-.seg {
-  margin-bottom: 28rpx;
-}
-
-.seg-label {
-  margin-bottom: 12rpx;
-  margin-left: 4rpx;
-  font-size: 22rpx;
-  font-weight: 600;
-  letter-spacing: 0.4rpx;
-  color: var(--ink-3);
-}
-
-.seg-track {
-  position: relative;
-  padding: 5rpx;
-  border-radius: 999rpx;
-  background: rgba(255, 255, 255, 0.09);
-  box-shadow: inset 0 1rpx 3rpx rgba(0, 0, 0, 0.28);
-}
-
-.seg-thumb {
-  position: absolute;
-  top: 5rpx;
-  bottom: 5rpx;
-  left: 5rpx;
-  border-radius: 999rpx;
-  background: #fff;
-  box-shadow: 0 4rpx 14rpx rgba(0, 0, 0, 0.3);
-  transition: transform 440ms var(--spring);
-  will-change: transform;
-}
-
-.seg-items {
-  position: relative;
-  display: flex;
-}
-
-.seg-item {
-  display: flex;
-  flex: 1;
-  align-items: center;
-  justify-content: center;
-  padding: 18rpx 0;
-}
-
-.seg-text {
-  font-size: 24rpx;
-  font-weight: 500;
-  letter-spacing: 0.2rpx;
-  color: rgba(255, 255, 255, 0.7);
-  transition: color 300ms var(--spring);
-}
-
-.seg-text--on {
-  color: #16141c;
-  font-weight: 600;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .seg-thumb {
-    transition: none;
-  }
-}
-</style>

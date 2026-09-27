@@ -40,7 +40,7 @@ function copy(code: string) {
 </script>
 
 <template>
-  <view class="code-sheet">
+  <view>
     <Switcher
       title="目标框架"
       :items="PATTERN_FRAMEWORKS"
@@ -57,64 +57,23 @@ function copy(code: string) {
     <view
       v-for="file in files"
       :key="file.filename"
-      class="row press"
+      class="flex items-center justify-between mb-[16rpx] px-[28rpx] py-[26rpx] rounded-[24rpx] press
+        bg-[rgba(255,255,255,0.07)] shadow-[inset_0_1rpx_0_rgba(255,255,255,0.08)]"
       hover-class="press--on"
       :hover-stay-time="60"
       @tap="copy(file.code)"
     >
-      <view class="row-text">
-        <view class="row-name">
+      <view class="min-w-0">
+        <view class="text-[28rpx] font-500 tracking-[-0.2rpx] text-ink">
           <text>{{ file.filename }}</text>
         </view>
-        <view class="row-meta">
+        <view class="mt-[6rpx] text-[21rpx] text-ink-3">
           <text>{{ lines(file.code) }} 行 · {{ file.lang === 'css' ? '样式' : file.lang === 'html' ? '模板' : '脚本' }}</text>
         </view>
       </view>
-      <view class="row-btn">
-        <text class="row-btn-text">复制</text>
+      <view class="px-[30rpx] py-[12rpx] rounded-full bg-white">
+        <text class="text-[24rpx] font-600 text-coal">复制</text>
       </view>
     </view>
   </view>
 </template>
-
-<style scoped>
-.row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 16rpx;
-  padding: 26rpx 28rpx;
-  border-radius: 24rpx;
-  background: rgba(255, 255, 255, 0.07);
-  box-shadow: inset 0 1rpx 0 rgba(255, 255, 255, 0.08);
-}
-
-.row-text {
-  min-width: 0;
-}
-
-.row-name {
-  font-size: 28rpx;
-  font-weight: 500;
-  letter-spacing: -0.2rpx;
-  color: var(--ink);
-}
-
-.row-meta {
-  margin-top: 6rpx;
-  font-size: 21rpx;
-  color: var(--ink-3);
-}
-
-.row-btn {
-  padding: 12rpx 30rpx;
-  border-radius: 999rpx;
-  background: #fff;
-}
-
-.row-btn-text {
-  font-size: 24rpx;
-  font-weight: 600;
-  color: #16141c;
-}
-</style>

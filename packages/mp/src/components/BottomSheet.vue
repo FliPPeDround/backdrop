@@ -104,32 +104,72 @@ function stop() {}
 </script>
 
 <template>
+  <!--
+    遮罩只管命中和可见性；压暗 + 磨砂交给下面那层 frost。
+    visibility 的延迟保留：关闭时面板滑完再交出命中区。
+  -->
   <view
-    class="mask"
-    :class="{ 'mask--on': props.open, 'mask--drag': dragging }"
+    class="fixed inset-0 z-20 flex flex-col justify-end"
+    :class="props.open
+      ? 'on:visible on:[transition:visibility_0s]'
+      : 'invisible [transition:visibility_0s_linear_420ms]'"
     @tap="emit('close')"
   >
     <!-- 拖到哪，背后的压暗就退到哪：手指在动的是「模态」这件事，不只是那块面板 -->
-    <view class="frost" :style="{ opacity: 1 - progress }" />
+    <!--
+      磨砂单独一层，而且这层自己绝不被动画推着走：
+      backdrop-filter 挂在 transform 动画中的元素上，合成器会复用上一次采样的快照，
+      而那次采样时面板还在屏幕外 —— 表现就是面板先透明、落位后才突然变玻璃。
+      模糊半径本身可以过渡（材质「凝出来」而不是凭空出现），位移交给面板。
+      压暗也放这层：整屏一起糊，才像 iOS 的模态。
+    -->
     <view
-      class="sheet"
-      :class="{ 'sheet--on': props.open }"
+      class="absolute inset-0 backdrop-blur-[0px] backdrop-saturate-180
+        bg-[rgba(8,7,12,0)]
+        [transition:background_420ms_var(--spring),backdrop-filter_420ms_var(--spring)]"
+      :class="[
+        props.open
+          ? 'on:bg-[rgba(8,7,12,0.22)] on:backdrop-blur-[30px] on:no-backdrop:bg-[rgba(8,7,12,0.62)] on:reduce-transparency:bg-[rgba(8,7,12,0.62)] on:reduce-transparency:backdrop-filter-none'
+          : '',
+        dragging ? '[transition:none]' : '',
+      ]"
+      :style="{ opacity: 1 - progress }"
+    />
+    <!--
+      面板自己不再 backdrop-filter：背后的整屏已经被 frost 糊过一遍，再糊一次只是白付钱。
+      这里只留一层同色相的染色（和右侧胶囊一个家族 28,26,36）+ 亮顶边。
+      no-backdrop / reduce-transparency 两项是兜底：模糊换不来时两层都退回实色。
+    -->
+    <view
+      class="relative z-1 max-h-80vh px-[32rpx] pb-[calc(28rpx_+_env(safe-area-inset-bottom))]
+        rounded-t-[44rpx] translate-y-[102%] bg-[rgba(28,26,36,0.55)]
+        shadow-[inset_0_1rpx_0_rgba(255,255,255,0.28),0_-20rpx_60rpx_rgba(0,0,0,0.4)]
+        [transition:transform_480ms_var(--spring)] will-change-transform motion-reduce:transition-none
+        no-backdrop:bg-[rgba(24,22,31,0.96)] reduce-transparency:bg-[rgba(24,22,31,0.98)]"
+      :class="[
+        props.open ? 'on:translate-y-0' : '',
+        dragging ? '[transition:none]' : '',
+      ]"
       :style="offset ? { transform: `translateY(${offset}px)` } : {}"
       @tap.stop="stop"
     >
       <!-- 只有头部能拖：下面是横向滚动的缩略图，两边抢同一个手势会有一边失灵 -->
       <view
-        class="grab-zone"
         @touchstart="onDragStart"
         @touchmove="onDragMove"
         @touchend="onDragEnd"
         @touchcancel="onDragEnd"
       >
-        <view class="grabber" />
+        <!-- 抓住了就把把手加宽、提亮：告诉手指「这块面板现在归你拖」 -->
+        <view
+          class="w-[76rpx] h-[10rpx] mt-[16rpx] mb-[4rpx] mx-auto rounded-full bg-[rgba(255,255,255,0.26)]
+            [transition:width_320ms_var(--spring),background_320ms_var(--spring)] motion-reduce:transition-none"
+          :class="dragging ? 'on:w-[108rpx] on:bg-[rgba(255,255,255,0.44)]' : ''"
+        />
         <view v-if="contentMounted">
-          <view class="head">
-            <text class="head-title">{{ props.title }}</text>
-            <view class="head-actions">
+          <view class="flex items-center justify-between pt-[16rpx] px-[4rpx] pb-[24rpx]">
+            <text class="text-[34rpx] font-600 tracking-[-0.6rpx] text-ink">{{ props.title }}</text>
+            <view class="flex items-center">
               <slot name="action" />
             </view>
           </view>
@@ -139,146 +179,3 @@ function stop() {}
     </view>
   </view>
 </template>
-
-<style scoped>
-/*
- * 遮罩只管命中和可见性；压暗 + 磨砂交给下面那层 .frost。
- * visibility 的延迟保留：关闭时面板滑完再交出命中区。
- */
-.mask {
-  position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  z-index: 20;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  visibility: hidden;
-  transition: visibility 0s linear 420ms;
-}
-
-.mask--on {
-  visibility: visible;
-  transition: visibility 0s;
-}
-
-/* 拖动的这一段必须一帧一帧跟手：过渡会让面板滑在手指后面 */
-.mask--drag .frost,
-.mask--drag .sheet {
-  transition: none;
-}
-
-/*
- * 磨砂单独一层，而且这层自己绝不被动画推着走：
- * backdrop-filter 挂在 transform 动画中的元素上，合成器会复用上一次采样的快照，
- * 而那次采样时面板还在屏幕外 —— 表现就是面板先透明、落位后才突然变玻璃。
- * 模糊半径本身可以过渡（材质「凝出来」而不是凭空出现），位移交给面板。
- * 压暗也放这层：整屏一起糊，才像 iOS 的模态。
- */
-.frost {
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  background: rgba(8, 7, 12, 0);
-  backdrop-filter: blur(0px) saturate(180%);
-  transition: background 420ms var(--spring), backdrop-filter 420ms var(--spring);
-}
-
-.mask--on .frost {
-  background: rgba(8, 7, 12, 0.22);
-  backdrop-filter: blur(30px) saturate(180%);
-}
-
-.sheet {
-  position: relative;
-  z-index: 1;
-  max-height: 80vh;
-  padding: 0 32rpx calc(28rpx + env(safe-area-inset-bottom));
-  border-radius: 44rpx 44rpx 0 0;
-  /*
-   * 面板自己不再 backdrop-filter：背后的整屏已经被 .frost 糊过一遍，再糊一次只是白付钱。
-   * 这里只留一层同色相的染色（和右侧胶囊一个家族 28,26,36）+ 亮顶边。
-   */
-  background: rgba(28, 26, 36, 0.55);
-  box-shadow: inset 0 1rpx 0 rgba(255, 255, 255, 0.28), 0 -20rpx 60rpx rgba(0, 0, 0, 0.4);
-  transform: translateY(102%);
-  transition: transform 480ms var(--spring);
-  will-change: transform;
-}
-
-/* 老内核没有 backdrop-filter：两层都退回实色，别让图案直接透上来 */
-@supports not (backdrop-filter: blur(1px)) {
-  .mask--on .frost {
-    background: rgba(8, 7, 12, 0.62);
-  }
-
-  .sheet {
-    background: rgba(24, 22, 31, 0.96);
-  }
-}
-
-.sheet--on {
-  transform: translateY(0);
-}
-
-.grabber {
-  width: 76rpx;
-  height: 10rpx;
-  margin: 16rpx auto 4rpx;
-  border-radius: 999rpx;
-  background: rgba(255, 255, 255, 0.26);
-  transition: width 320ms var(--spring), background 320ms var(--spring);
-}
-
-/* 抓住了就把把手加宽、提亮：告诉手指「这块面板现在归你拖」 */
-.mask--drag .grabber {
-  width: 108rpx;
-  background: rgba(255, 255, 255, 0.44);
-}
-
-.head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16rpx 4rpx 24rpx;
-}
-
-.head-title {
-  font-size: 34rpx;
-  font-weight: 600;
-  letter-spacing: -0.6rpx;
-  color: var(--ink);
-}
-
-.head-actions {
-  display: flex;
-  align-items: center;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .sheet {
-    transition: none;
-  }
-
-  .grabber {
-    transition: none;
-  }
-}
-
-/* 要求降低透明度时收成实色：毛玻璃是装饰，可读性不是 */
-@media (prefers-reduced-transparency: reduce) {
-  .frost,
-  .mask--on .frost {
-    background: rgba(8, 7, 12, 0.62);
-    backdrop-filter: none;
-  }
-
-  .sheet {
-    background: rgba(24, 22, 31, 0.98);
-  }
-}
-</style>

@@ -468,10 +468,23 @@ const gestureHint = computed(() => (hintVisible.value && !sheetOpen.value ? gest
 </script>
 
 <template>
-  <view class="root">
+  <view class="relative min-h-100vh bg-coal">
+    <!--
+      一屏一页：stage 自己就是视口，分页器和浮层都在这个坐标系里。
+      模态任务：把父层推远压暗，材质层级即层级关系。0.62 压得太死——弹层收成毛玻璃之后，
+      背后被压成灰，玻璃收不到颜色；提到 0.78，推远交给 scale 和这层一起说。
+      拖着面板走的时候父层要一帧一帧跟手，不能挂一条 480ms 的过渡在后面追。
+    -->
     <view
-      class="stage"
-      :class="{ 'stage--pushed': sheetOpen, 'stage--drag': sheetDragging }"
+      class="relative h-100vh overflow-hidden will-change-transform,filter motion-reduce:transition-none"
+      :class="[
+        sheetDragging
+          ? '[transition:none]'
+          : '[transition:transform_480ms_var(--spring),filter_480ms_var(--spring)]',
+        sheetOpen
+          ? 'on:scale-[0.955] on:brightness-78 on:motion-reduce:transform-none on:motion-reduce:brightness-72'
+          : '',
+      ]"
       :style="stageStyle"
       @touchstart="onStageTouchStart"
       @touchmove="onStageTouchMove"
@@ -479,8 +492,13 @@ const gestureHint = computed(() => (hintVisible.value && !sheetOpen.value ? gest
       @touchcancel="onStageTouchEnd"
       @tap="onStageTap"
     >
+      <!--
+        swiper 自带 150px 默认高（h5 和微信原生都一样），只写 inset 会被它自己的 height 顶掉。
+        白底和 web 端一致（卡片 bg-white、手机框 .phone-screen #fff）：带 maskImage 渐隐的图案
+        边缘是透明的，深色底会让它整片发暗，看着像图案本身是深色。
+      -->
       <swiper
-        class="bg"
+        class="absolute top-0 left-0 w-full h-full z-0 bg-white"
         :vertical="true"
         :circular="true"
         :current="index"
@@ -490,13 +508,29 @@ const gestureHint = computed(() => (hintVisible.value && !sheetOpen.value ? gest
         @change="onSwiperChange"
       >
         <swiper-item v-for="(pattern, i) in slides" :key="pattern.id">
-          <view v-if="isNear(i)" class="slide" :class="i === armed ? 'slide--enter' : ''">
+          <!-- 动 blur/scale 的是包裹层，图案自己的内联 filter 不受影响 -->
+          <view
+            v-if="isNear(i)"
+            class="absolute inset-0 will-change-transform,opacity"
+            :class="i === armed ? 'animate-materialize motion-reduce:animate-fade-in' : ''"
+          >
             <PatternSurface :pattern="pattern" />
           </view>
         </swiper-item>
       </swiper>
 
-      <view class="scrim" :class="{ 'scrim--away': peeking }" />
+      <!--
+        白底之后，浅色图案上的标题全靠这层压暗；0.5 压不住近白底，提到 0.62。
+        中段留一段 0.52 的平台再收到 0：标题区拉开之后读数落在渐变尾段，纯线性衰减会让它
+        掉到 1.9:1，平台托回 3:1 以上，而图案照样在这层之下完整浮出来。
+        长按看原图时这层也一起撤掉 —— 看原图就是连压暗也不要。
+      -->
+      <view
+        class="absolute top-0 right-0 left-0 z-1 h-[54vh] pointer-events-none
+          [transition:opacity_420ms_var(--settle)] motion-reduce:transition-none
+          bg-[linear-gradient(180deg,rgba(8,7,12,0.62)_0%,rgba(8,7,12,0.52)_42%,rgba(8,7,12,0)_100%)]"
+        :class="peeking ? 'on:opacity-0' : ''"
+      />
 
       <PageRail :total="slides.length" :turn="railTurn" :dir="dir" :away="peeking" />
 
@@ -516,33 +550,59 @@ const gestureHint = computed(() => (hintVisible.value && !sheetOpen.value ? gest
         @filter-color="pickColor"
       />
 
-      <view class="bottom">
+      <!-- 底部两层：色轨在上、dock 在下，让位时各走各的延迟，读起来像一次收拢 -->
+      <view class="absolute right-0 bottom-0 left-0 z-2 pointer-events-none">
         <ColorRail :items="colors" :active="activeColor" :away="peeking" @change="pickColor" />
 
-        <view class="dock" :class="{ 'dock--away': peeking }">
+        <!--
+          dock 无底板：图案一直铺到底边，只有三颗浮着的按钮。
+          底部留 64rpx（≈16pt，iOS 常规底边距）再叠安全区：原来只有 28rpx，
+          在没有安全区的机型上按钮几乎贴着屏幕边，拇指按起来很勉强。
+        -->
+        <view
+          class="flex items-center px-[36rpx] pt-[32rpx] pb-[calc(64rpx_+_env(safe-area-inset-bottom))]
+            [transition:transform_460ms_var(--settle),opacity_460ms_var(--settle)] delay-[70ms]
+            motion-reduce:transition-none"
+          :class="peeking ? 'on:opacity-0 on:translate-y-[80rpx]' : ''"
+        >
           <!--
             分享是这个小程序最该被按下的那一个，所以它站在首页。
             必须是 button + open-type=share —— 转发面板只有这个入口拉得起来。
           -->
           <!-- #ifdef MP-WEIXIN -->
+          <!--
+            圆形控件跟右侧轨道、星标同一份深色磨砂：三颗浮在图案上的按钮不该各是各的玻璃。
+            button 自带灰底、左右内边距、行高和一圈 ::after 描边：
+            p-0 / ml-0 / border-none / leading-none / after:border-none 这几项只负责把这些清掉。
+          -->
           <button
-            class="dock-circle dock-share press"
+            class="flex flex-none items-center justify-center w-[92rpx] h-[92rpx] mr-[18rpx] rounded-full
+              glass-dark pointer-events-auto p-0 ml-0 border-none leading-none after:border-none press"
             open-type="share"
             hover-class="press--on"
             :hover-stay-time="60"
           >
             <!-- 和 web 端详情页那颗分享按钮同一枚图标：i-carbon:share -->
-            <view class="i-carbon-share share-icon" />
+            <!-- 分享图标由图标集出（宽度就是 1em），这里只管它多大、什么颜色 -->
+            <view class="i-carbon-share text-[30rpx] text-[rgba(255,255,255,0.92)]" />
           </button>
           <!-- #endif -->
 
+          <!--
+            灰白毛玻璃：半透明白 + backdrop-filter，图案从底下透上来但被压平；
+            亮顶边是光打在材质上，比纯描边更像真实材质。
+          -->
           <view
-            class="dock-btn press"
+            class="flex flex-1 items-center justify-center h-[92rpx] mr-[18rpx] rounded-full
+              bg-[rgba(238,238,244,0.68)]
+              shadow-[inset_0_1rpx_0_rgba(255,255,255,0.55),0_10rpx_28rpx_rgba(0,0,0,0.22)]
+              backdrop-blur-[24px] backdrop-saturate-180 pointer-events-auto press
+              reduce-transparency:bg-[#eeeff4] reduce-transparency:backdrop-filter-none"
             hover-class="press--on"
             :hover-stay-time="60"
             @tap.stop="pickerOpen = true"
           >
-            <text class="dock-text">选择背景</text>
+            <text class="text-[29rpx] font-600 tracking-[-0.2rpx] text-coal">选择背景</text>
           </view>
 
           <FavouriteButton
@@ -553,15 +613,26 @@ const gestureHint = computed(() => (hintVisible.value && !sheetOpen.value ? gest
         </view>
       </view>
 
-      <!-- 双击收藏的那一下从手指底下炸开，而不是在屏幕角落悄悄换一个状态 -->
+      <!--
+        双击的爆开：一枚书签加一圈往外散掉的环（和 dock 里那枚同一个形状，
+        换成流星会让「收藏」这件事在画面里出现两种符号）。书签先亮起来再胀开，
+        环走得比书签远 —— 两者同源不同速，才像有质量的一下，而不是两个一起淡出的动画。
+      -->
       <view
         v-for="item in bursts"
         :key="item.id"
-        class="burst"
+        class="absolute z-5 flex items-center justify-center w-0 h-0 pointer-events-none"
         :style="{ left: `${item.x}px`, top: `${item.y}px` }"
       >
-        <view class="burst-ring" />
-        <view class="i-carbon-star-filled burst-mark" />
+        <view
+          class="absolute w-[170rpx] h-[170rpx] rounded-full border-[3rpx] border-solid
+            border-[rgba(255,217,122,0.7)] animate-burst-ring motion-reduce:animate-none"
+        />
+        <!-- 炸开的这一枚就是收藏那颗实心星，只是大一号 -->
+        <view
+          class="i-carbon-star-filled absolute text-[76rpx] text-star
+            drop-shadow-[0_4rpx_18rpx_rgba(8,7,12,0.45)] animate-burst-mark motion-reduce:animate-none"
+        />
       </view>
     </view>
 
@@ -574,7 +645,17 @@ const gestureHint = computed(() => (hintVisible.value && !sheetOpen.value ? gest
       @drag-end="onSheetDragEnd"
     >
       <template #action>
-        <text class="sheet-act press" hover-class="press--on" :hover-stay-time="60" @tap="codeOpen = true">
+        <!--
+          弹层头部只有一个「实」按钮，就是它：颜色落在实色层上，
+          和选中态的分类片、Switcher 的滑块同一种语言；关闭动作让位给裸文字。
+        -->
+        <text
+          class="mr-[10rpx] px-[26rpx] py-[12rpx] rounded-full bg-white text-[26rpx] font-600
+            text-coal shadow-[0_6rpx_20rpx_rgba(0,0,0,0.24)] press"
+          hover-class="press--on"
+          :hover-stay-time="60"
+          @tap="codeOpen = true"
+        >
           复制代码
         </text>
       </template>
@@ -606,313 +687,3 @@ const gestureHint = computed(() => (hintVisible.value && !sheetOpen.value ? gest
     </BottomSheet>
   </view>
 </template>
-
-<style scoped>
-.root {
-  position: relative;
-  min-height: 100vh;
-  background: #16141c;
-}
-
-/* 一屏一页：stage 自己就是视口，分页器和浮层都在这个坐标系里 */
-.stage {
-  position: relative;
-  height: 100vh;
-  overflow: hidden;
-  transition: transform 480ms var(--spring), filter 480ms var(--spring);
-  will-change: transform, filter;
-}
-
-/* 拖着面板走的时候父层要一帧一帧跟手，不能挂一条 480ms 的过渡在后面追 */
-.stage--drag {
-  transition: none;
-}
-
-/*
- * 模态任务：把父层推远压暗，材质层级即层级关系。
- * 0.62 压得太死——弹层收成毛玻璃之后，背后被压成灰，玻璃收不到颜色；
- * 提到 0.78，推远交给 scale 和这层一起说（实测面板底色从 28-36 抬到 45-58，白字仍 10:1 以上）。
- */
-.stage--pushed {
-  transform: scale(0.955);
-  filter: brightness(0.78);
-}
-
-.bg {
-  position: absolute;
-  top: 0;
-  left: 0;
-  /* swiper 自带 150px 默认高（h5 和微信原生都一样），只写 inset 会被它自己的 height 顶掉 */
-  width: 100%;
-  height: 100%;
-  z-index: 0;
-  /*
-   * 白底和 web 端一致（卡片 bg-white、手机框 .phone-screen #fff）。
-   * 带 maskImage 渐隐的图案边缘是透明的，深色底会让它整片发暗，看着像图案本身是深色。
-   */
-  background: #fff;
-}
-
-/* 动 blur/scale 的是包裹层，图案自己的内联 filter 不受影响 */
-.slide {
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  will-change: transform, opacity;
-}
-
-.slide--enter {
-  animation: materialize 620ms var(--settle) both;
-}
-
-/* 收尾落到 filter: none，而不是 blur(0)：留一个恒等 filter 会一直占住合成层并露出边缘 */
-@keyframes materialize {
-  from {
-    opacity: 0;
-    transform: scale(1.055);
-    filter: blur(14px);
-  }
-  99% {
-    filter: blur(0.6px);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-    filter: none;
-  }
-}
-
-/*
- * 白底之后，浅色图案上的标题全靠这层压暗；0.5 压不住近白底，提到 0.62。
- * 中段留一段 0.52 的平台再收到 0：标题区拉开之后读数落在渐变尾段，纯线性衰减会让它
- * 掉到 1.9:1，平台托回 3:1 以上，而图案照样在这层之下完整浮出来。
- * 长按看原图时这层也一起撤掉 —— 看原图就是连压暗也不要。
- */
-.scrim {
-  position: absolute;
-  top: 0;
-  right: 0;
-  left: 0;
-  z-index: 1;
-  height: 54vh;
-  pointer-events: none;
-  background: linear-gradient(180deg, rgba(8, 7, 12, 0.62) 0%, rgba(8, 7, 12, 0.52) 42%, rgba(8, 7, 12, 0) 100%);
-  transition: opacity 420ms var(--settle);
-}
-
-.scrim--away {
-  opacity: 0;
-}
-
-/* 底部两层：色轨在上、dock 在下，让位时各走各的延迟，读起来像一次收拢 */
-.bottom {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  z-index: 2;
-  pointer-events: none;
-}
-
-/*
- * dock 无底板：图案一直铺到底边，只有三颗浮着的按钮。
- * 底部留 64rpx（≈16pt，iOS 常规底边距）再叠安全区：原来只有 28rpx，
- * 在没有安全区的机型上按钮几乎贴着屏幕边，拇指按起来很勉强。
- */
-.dock {
-  display: flex;
-  align-items: center;
-  padding: 32rpx 36rpx calc(64rpx + env(safe-area-inset-bottom));
-  transition: transform 460ms var(--settle), opacity 460ms var(--settle);
-  transition-delay: 70ms;
-}
-
-.dock--away {
-  opacity: 0;
-  transform: translateY(80rpx);
-}
-
-/*
- * 灰白毛玻璃：半透明白 + backdrop-filter，图案从底下透上来但被压平；
- * 亮顶边是光打在材质上，比纯描边更像真实材质。
- */
-.dock-btn {
-  display: flex;
-  flex: 1;
-  align-items: center;
-  justify-content: center;
-  height: 92rpx;
-  margin-right: 18rpx;
-  border-radius: 999rpx;
-  background: rgba(238, 238, 244, 0.68);
-  box-shadow: inset 0 1rpx 0 rgba(255, 255, 255, 0.55), 0 10rpx 28rpx rgba(0, 0, 0, 0.22);
-  backdrop-filter: blur(24px) saturate(180%);
-  pointer-events: auto;
-}
-
-/* 圆形控件跟右侧轨道、星标同一份深色磨砂：三颗浮在图案上的按钮不该各是各的玻璃 */
-.dock-circle {
-  display: flex;
-  flex: none;
-  align-items: center;
-  justify-content: center;
-  width: 92rpx;
-  height: 92rpx;
-  margin-right: 18rpx;
-  border-radius: 999rpx;
-  background: rgba(28, 26, 36, 0.26);
-  box-shadow: inset 0 1rpx 0 rgba(255, 255, 255, 0.22), 0 8rpx 24rpx rgba(8, 7, 12, 0.18);
-  backdrop-filter: blur(18px) saturate(160%);
-  pointer-events: auto;
-}
-
-/*
- * button 自带灰底、左右内边距、行高和一圈 ::after 描边：这一条只负责把这些清掉，
- * 圆形和材质继续交给 .dock-circle，浮在图案上的几颗控件才是同一份玻璃。
- */
-.dock-share {
-  padding: 0;
-  margin-left: 0;
-  border: none;
-  line-height: 1;
-}
-
-.dock-share::after {
-  border: none;
-}
-
-/* 分享图标由图标集出（宽度就是 1em），这里只管它多大、什么颜色 */
-.share-icon {
-  font-size: 30rpx;
-  color: rgba(255, 255, 255, 0.92);
-}
-
-.dock-text {
-  font-size: 29rpx;
-  font-weight: 600;
-  letter-spacing: -0.2rpx;
-  color: #16141c;
-}
-
-/*
- * 双击的爆开：一枚书签加一圈往外散掉的环（和 dock 里那枚同一个形状，
- * 换成流星会让「收藏」这件事在画面里出现两种符号）。书签先亮起来再胀开，
- * 环走得比书签远 —— 两者同源不同速，才像有质量的一下，而不是两个一起淡出的动画。
- */
-.burst {
-  position: absolute;
-  z-index: 5;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 0;
-  height: 0;
-  pointer-events: none;
-}
-
-/* 炸开的这一枚就是收藏那颗实心星，只是大一号 */
-.burst-mark {
-  position: absolute;
-  font-size: 76rpx;
-  color: #ffd97a;
-  filter: drop-shadow(0 4rpx 18rpx rgba(8, 7, 12, 0.45));
-  animation: burst-mark 720ms var(--settle) both;
-}
-
-.burst-ring {
-  position: absolute;
-  width: 170rpx;
-  height: 170rpx;
-  border: 3rpx solid rgba(255, 217, 122, 0.7);
-  border-radius: 999rpx;
-  animation: burst-ring 780ms var(--settle) both;
-}
-
-@keyframes burst-mark {
-  0% {
-    opacity: 0;
-    transform: scale(0.32) rotate(-16deg);
-  }
-  24% {
-    opacity: 1;
-    transform: scale(1.08) rotate(0deg);
-  }
-  100% {
-    opacity: 0;
-    transform: scale(1.55) rotate(5deg);
-  }
-}
-
-@keyframes burst-ring {
-  0% {
-    opacity: 0.8;
-    transform: scale(0.34);
-  }
-  100% {
-    opacity: 0;
-    transform: scale(1.45);
-  }
-}
-
-/*
- * 弹层头部只有一个「实」按钮，就是它：颜色落在实色层上（§12），
- * 和选中态的分类片、Switcher 的滑块同一种语言；关闭动作让位给裸文字。
- */
-.sheet-act {
-  margin-right: 10rpx;
-  padding: 12rpx 26rpx;
-  border-radius: 999rpx;
-  font-size: 26rpx;
-  font-weight: 600;
-  color: #16141c;
-  background: #fff;
-  box-shadow: 0 6rpx 20rpx rgba(0, 0, 0, 0.24);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .stage,
-  .dock,
-  .scrim {
-    transition: none;
-  }
-
-  .stage--pushed {
-    transform: none;
-    filter: brightness(0.72);
-  }
-
-  /* 不做位移和模糊，但仍要把「换了内容」交代清楚：位移换成交叉淡入淡出 */
-  .slide--enter {
-    animation: fade-in 220ms ease both;
-  }
-
-  .burst-mark,
-  .burst-ring {
-    animation: none;
-  }
-}
-
-@keyframes fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-/* 用户要求降低透明度时，主按钮收成实色，不再依赖 backdrop-filter */
-@media (prefers-reduced-transparency: reduce) {
-  .dock-btn {
-    background: #eeeff4;
-    backdrop-filter: none;
-  }
-
-  .dock-circle {
-    background: rgba(28, 26, 36, 0.72);
-    backdrop-filter: none;
-  }
-}
-</style>

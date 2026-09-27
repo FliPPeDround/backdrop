@@ -45,73 +45,35 @@ const colStyle = computed(() => ({
 </script>
 
 <template>
-  <view class="roll">
+  <view class="flex items-center">
+    <!-- 首位是空格列时整列淡出，占位还在，后面的数字不会跳位置 -->
     <view
       v-for="cell in cells"
       :key="cell.place"
-      class="roll-col"
-      :class="cell.on ? 'roll-col--on' : ''"
+      class="relative flex-shrink-0 overflow-hidden opacity-0 [transition:opacity_260ms_var(--settle)]"
+      :class="cell.on ? 'on:opacity-100' : ''"
       :style="colStyle"
     >
+      <!--
+        1000% 是十格的总高：列高由 inline 给了具体值，百分比在这里算得出来。
+        一格正好等于窗口高，窗口里就不会露出下一格的字头。
+      -->
       <view
-        class="roll-strip"
+        class="flex flex-col h-[1000%] will-change-transform [transition:transform_620ms_var(--settle)]
+          motion-reduce:transition-none"
         :style="{
           transform: `translateY(${-cell.digit * 10}%)`,
           transitionDelay: `${cell.place * 45}ms`,
         }"
       >
-        <view v-for="n in 10" :key="n" class="roll-digit">
+        <view
+          v-for="n in 10"
+          :key="n"
+          class="flex flex-none items-center justify-center h-[10%] leading-none tabular-nums"
+        >
           <text>{{ n - 1 }}</text>
         </view>
       </view>
     </view>
   </view>
 </template>
-
-<style scoped>
-.roll {
-  display: flex;
-  align-items: center;
-}
-
-.roll-col {
-  position: relative;
-  flex-shrink: 0;
-  overflow: hidden;
-  /* 首位是空格列时整列淡出，占位还在，后面的数字不会跳位置 */
-  opacity: 0;
-  transition: opacity 260ms var(--settle);
-}
-
-.roll-col--on {
-  opacity: 1;
-}
-
-.roll-strip {
-  display: flex;
-  flex-direction: column;
-  /*
-   * 1000% 是十格的总高：列高由 inline 给了具体值，百分比在这里算得出来。
-   * 一格正好等于窗口高，窗口里就不会露出下一格的字头。
-   */
-  height: 1000%;
-  will-change: transform;
-  transition: transform 620ms var(--settle);
-}
-
-.roll-digit {
-  display: flex;
-  flex: none;
-  align-items: center;
-  justify-content: center;
-  height: 10%;
-  line-height: 1;
-  font-variant-numeric: tabular-nums;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .roll-strip {
-    transition: none;
-  }
-}
-</style>

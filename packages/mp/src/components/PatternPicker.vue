@@ -44,8 +44,9 @@ function pickCategory(id: string) {
 </script>
 
 <template>
-  <view class="picker">
-    <view class="tabs-slot">
+  <view>
+    <!-- 左右让 14rpx 和卡片对齐；分类行和列表之间的间距由 Switcher 自己的 margin 负责 -->
+    <view class="px-[14rpx]">
       <Switcher
         :items="categories"
         :active="activeCategory"
@@ -57,147 +58,51 @@ function pickCategory(id: string) {
       两个筛选轴都留在面板顶部常驻：色系是第二个轴，
       跟着列表滚走的话，滑到一半想换个色还得先滑回顶。
     -->
-    <view class="colors-slot">
+    <view class="px-[14rpx]">
       <ColorPills :items="colors" :active="activeColor" @change="emit('change-color', $event)" />
     </view>
 
     <scroll-view
-      class="scroller"
+      class="max-h-[54vh]"
       scroll-y
       enhanced
       :show-scrollbar="false"
       :lower-threshold="160"
       @scrolltolower="emit('load-more')"
     >
-      <view v-if="!empty" class="thumbs">
+      <!--
+        选中环是外扩的 box-shadow（7rpx），而 scroll-view 会按自己的边界裁切，
+        首行/首尾列的卡片环会被切平，所以先让出 14rpx 给环。
+      -->
+      <view v-if="!empty" class="flex flex-wrap justify-between px-[14rpx] pt-[14rpx]">
+        <!-- 选中态：卡片本身是白的，白描边会直接融进去，所以先用一层面板色做间隙，再描白环 -->
         <view
           v-for="(pattern, i) in patterns"
           :key="pattern.id"
-          class="cell press"
-          :class="pattern.id === activeId ? 'cell--on' : ''"
+          class="relative flex flex-col overflow-hidden w-[31.5%] h-[156rpx] mb-[18rpx] rounded-[20rpx] press
+            bg-white shadow-[0_6rpx_18rpx_rgba(0,0,0,0.28)]
+            animate-cell-in will-change-transform,opacity motion-reduce:animate-none"
+          :class="pattern.id === activeId
+            ? 'on:shadow-[0_0_0_3rpx_#18161f,0_0_0_7rpx_#fff,0_12rpx_28rpx_rgba(0,0,0,0.4)]'
+            : ''"
           :style="{ animationDelay: delayOf(i) }"
           hover-class="press--on"
           :hover-stay-time="60"
           @tap="emit('pick', pattern)"
         >
           <PatternSurface :pattern="pattern" />
-          <text class="cell-name">{{ pattern.name }}</text>
-          <view v-if="pattern.id === activeId" class="cell-dot" />
+          <text class="absolute right-0 bottom-0 left-0 z-1 px-[12rpx] pt-[22rpx] pb-[10rpx] overflow-hidden text-[19rpx] font-500 text-white whitespace-nowrap text-ellipsis text-shadow-[0_1rpx_4rpx_rgba(0,0,0,0.5)] bg-[linear-gradient(180deg,rgba(0,0,0,0)_0%,rgba(0,0,0,0.55)_100%)]">{{ pattern.name }}</text>
+          <view
+            v-if="pattern.id === activeId"
+            class="absolute top-[10rpx] right-[10rpx] z-1 w-[16rpx] h-[16rpx] rounded-full
+              bg-white shadow-[0_0_0_4rpx_rgba(0,0,0,0.22)]"
+          />
         </view>
       </view>
 
-      <text v-else class="empty">{{ emptyText }}</text>
+      <text v-else class="block py-[72rpx] text-[26rpx] text-center text-ink-2">{{ emptyText }}</text>
 
-      <text v-if="hasMore" class="hint">继续下滑</text>
+      <text v-if="hasMore" class="block pt-[8rpx] pb-[20rpx] text-[22rpx] text-center text-ink-3">继续下滑</text>
     </scroll-view>
   </view>
 </template>
-
-<style scoped>
-/* 左右让 14rpx 和卡片对齐；分类行和列表之间的间距由 Switcher 自己的 margin 负责 */
-.tabs-slot {
-  padding: 0 14rpx;
-}
-
-.colors-slot {
-  padding: 0 14rpx;
-}
-
-.scroller {
-  max-height: 54vh;
-}
-
-.thumbs {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  /*
-   * 选中环是外扩的 box-shadow（7rpx），而 scroll-view 会按自己的边界裁切，
-   * 首行/首尾列的卡片环会被切平，所以先让出 14rpx 给环。
-   */
-  padding: 14rpx 14rpx 0;
-}
-
-.cell {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  width: 31.5%;
-  height: 156rpx;
-  margin-bottom: 18rpx;
-  border-radius: 20rpx;
-  /* 垫白底：带透明度的图案（蒙版、渐隐）在深色面板上会发闷，和 web 端卡片同一处理 */
-  background: #fff;
-  box-shadow: 0 6rpx 18rpx rgba(0, 0, 0, 0.28);
-  animation: cell-in 460ms var(--spring) both;
-  will-change: transform, opacity;
-}
-
-@keyframes cell-in {
-  from {
-    opacity: 0;
-    transform: translateY(18rpx) scale(0.94);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-/* 卡片本身是白的，白描边会直接融进去：先用一层面板色做间隙，再描白环 */
-.cell--on {
-  box-shadow: 0 0 0 3rpx #18161f, 0 0 0 7rpx #fff, 0 12rpx 28rpx rgba(0, 0, 0, 0.4);
-}
-
-.cell-name {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  z-index: 1;
-  padding: 22rpx 12rpx 10rpx;
-  font-size: 19rpx;
-  font-weight: 500;
-  color: #fff;
-  text-shadow: 0 1rpx 4rpx rgba(0, 0, 0, 0.5);
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.55) 100%);
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-.cell-dot {
-  position: absolute;
-  top: 10rpx;
-  right: 10rpx;
-  z-index: 1;
-  width: 16rpx;
-  height: 16rpx;
-  border-radius: 999rpx;
-  background: #fff;
-  box-shadow: 0 0 0 4rpx rgba(0, 0, 0, 0.22);
-}
-
-.empty {
-  display: block;
-  padding: 72rpx 0;
-  font-size: 26rpx;
-  text-align: center;
-  color: var(--ink-2);
-}
-
-.hint {
-  display: block;
-  padding: 8rpx 0 20rpx;
-  font-size: 22rpx;
-  text-align: center;
-  color: var(--ink-3);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .cell {
-    animation: none;
-  }
-}
-</style>

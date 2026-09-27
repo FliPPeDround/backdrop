@@ -19,7 +19,13 @@ const props = defineProps<{
  */
 const SLOTS = 7
 const MIDDLE = (SLOTS - 1) / 2
-const RAMP = ['dot--focus', 'dot--near', 'dot--mid', 'dot--far']
+/** 离中心越远越小、越淡；一套材质两种底都成立，所以只动尺寸和亮度 */
+const RAMP = [
+  'scale-[1.7] opacity-100',
+  'scale-[1.1] opacity-[0.78]',
+  'scale-80 opacity-60',
+  'scale-[0.55] opacity-[0.44]',
+]
 
 const slots = computed(() => {
   const reach = Math.min(MIDDLE, Math.floor((props.total - 1) / 2))
@@ -35,236 +41,79 @@ const slots = computed(() => {
  * 独立节点的 key 在微信端会不会重建元素没有保证，而同名动画不重播——连续往一个方向
  * 翻时，只有名字换了才每次都起播。turn=0 是首帧，入场交给 rail-in。
  *
- * 一格等于轨道高度的 1/n，n 只可能是 1/3/5/7，用 class 给而不是内联 --step：
- * 既绕开微信在 v-for 子节点上丢 :style 绑定的坑，也留得下 reduced-motion 里那句覆盖。
+ * 一格等于轨道高度的 1/n，n 只可能是 1/3/5/7，所以写成四份字面量给 UnoCSS 扫：
+ * 既绕开微信在 v-for 子节点上丢 :style 绑定的坑，也留得下降动效里那句覆盖。
+ * --step / --dir 都只放无单位数字，rpx 一律留在声明里：微信对自定义属性里的 rpx
+ * 换不换算没有保证，别让动画的幅度赌在这上面。
  */
-const STEP = ['rail-track--n1', '', 'rail-track--n3', '', 'rail-track--n5', '', 'rail-track--n7']
+const STEP = [
+  '[--step:1]',
+  '',
+  '[--step:0.33333333]',
+  '',
+  '[--step:0.2]',
+  '',
+  '[--step:0.14285714]',
+]
+
+/**
+ * 滚一段：--dir 决定往哪边，a/b 决定用哪条同名 keyframes。
+ * 四种组合都写成字面量 —— 模板里的类名必须能被 UnoCSS 直接扫到，拼出来的字符串扫不到。
+ */
+const ROLL = {
+  up: {
+    a: 'animate-rail-roll-a [--dir:1]',
+    b: 'animate-rail-roll-b [--dir:1]',
+  },
+  down: {
+    a: 'animate-rail-roll-a [--dir:-1]',
+    b: 'animate-rail-roll-b [--dir:-1]',
+  },
+} as const
 
 const trackCls = computed(() => {
-  const step = STEP[slots.value.length - 1] ?? 'rail-track--n7'
+  const step = STEP[slots.value.length - 1] ?? '[--step:0.14285714]'
   if (!props.turn)
     return step
-  const parity = props.turn % 2 ? '--a' : '--b'
-  return `${step} ${props.dir > 0 ? 'roll--up' : 'roll--down'} roll${parity}`
+  const roll = ROLL[props.dir > 0 ? 'up' : 'down'][props.turn % 2 ? 'a' : 'b']
+  return `${step} ${roll}`
 })
 </script>
 
 <template>
-  <view v-if="total > 1" class="rail" :class="{ 'rail--away': away }">
-    <view class="rail-body">
-      <view :key="turn" class="rail-track" :class="trackCls">
-        <view v-for="slot in slots" :key="slot.k" class="rail-slot">
-          <view class="rail-dot" :class="slot.cls" />
+  <!-- 指示器只负责交代位置，绝不吃手势：整屏任何一点都要能起滑 -->
+  <view
+    v-if="total > 1"
+    class="absolute top-1/2 right-[16rpx] z-2 -translate-y-1/2 pointer-events-none
+      [transition:transform_460ms_var(--settle),opacity_460ms_var(--settle)] delay-[90ms]
+      motion-reduce:transition-none"
+    :class="away ? 'on:opacity-0 on:translate-x-[56rpx]' : ''"
+  >
+    <!--
+      中性灰磨砂、低不透明度：浅底上只是一层淡烟，深底上收一点光，
+      不用判断背后是亮是暗，一套材质两种背景都成立。
+    -->
+    <view
+      class="flex flex-col items-center px-[11rpx] py-[32rpx] rounded-full glass-dark
+        will-change-transform,opacity animate-rail-in motion-reduce:animate-none
+        reduce-transparency:bg-[rgba(28,26,36,0.78)]"
+    >
+      <view
+        :key="turn"
+        class="flex flex-col items-center will-change-transform,opacity
+          motion-reduce:[--step:0] motion-reduce:[--dim:0.4] motion-reduce:animate-duration-[220ms]"
+        :class="trackCls"
+      >
+        <view v-for="slot in slots" :key="slot.k" class="flex items-center justify-center flex-shrink-0 w-[12rpx] h-[32rpx]">
+          <view
+            class="w-[12rpx] h-[12rpx] rounded-full bg-[#e9e9f0]
+              shadow-[0_0_0_1rpx_rgba(20,18,28,0.12),0_1rpx_4rpx_rgba(20,18,28,0.1)]
+              [transition:transform_420ms_var(--spring),opacity_320ms_var(--spring)]
+              will-change-transform,opacity motion-reduce:transition-none"
+            :class="slot.cls"
+          />
         </view>
       </view>
     </view>
   </view>
 </template>
-
-<style scoped>
-/* 指示器只负责交代位置，绝不吃手势：整屏任何一点都要能起滑 */
-.rail {
-  position: absolute;
-  top: 50%;
-  right: 16rpx;
-  z-index: 2;
-  transform: translateY(-50%);
-  pointer-events: none;
-  transition: transform 460ms var(--settle), opacity 460ms var(--settle);
-  /* 比标题晚一点起手：视线先离开文字，右侧这条再跟着退 */
-  transition-delay: 90ms;
-}
-
-/* 往右让出屏幕而不是原地淡出：控件是「退到画面外」，不是「关灯」 */
-.rail--away {
-  opacity: 0;
-  transform: translateY(-50%) translateX(56rpx);
-}
-
-/*
- * 中性灰磨砂、低不透明度：浅底上只是一层淡烟，深底上收一点光，
- * 不用判断背后是亮是暗，一套材质两种背景都成立。
- */
-.rail-body {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 32rpx 11rpx;
-  border-radius: 999rpx;
-  background: rgba(28, 26, 36, 0.26);
-  box-shadow: inset 0 1rpx 0 rgba(255, 255, 255, 0.22), 0 8rpx 24rpx rgba(8, 7, 12, 0.18);
-  backdrop-filter: blur(18px) saturate(160%);
-  animation: rail-in 560ms var(--settle) 120ms both;
-  will-change: transform, opacity;
-}
-
-@keyframes rail-in {
-  from {
-    opacity: 0;
-    transform: translateX(16rpx) scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0) scale(1);
-  }
-}
-
-/*
- * 轨道当成轮子上的一段整段滚过「一格」：位移用轨道自身高度的 1/n（n = 槽位数），
- * 槽位高度恒定 32rpx，所以 1/n 正好就是一格，列表短到收槽位时也不用改数值。
- * 和标题的 26rpx 是同一套语言：跟着背景走，但不复制一整屏。
- * 收尾按起手位移的十分之一反向轻摆——这一下是手指甩出来的，允许带一点过冲（§4 只在有动量时加弹）。
- * 内衬正好留成一格（32rpx）：轨道偏满一格时最外圈点连投影都仍在胶囊内壁之内（实测内壁余量 12.7rpx）。
- *
- * --step / --dir 都只放无单位数字，rpx 一律留在声明里：微信对自定义属性里的 rpx
- * 换不换算没有保证，别让动画的幅度赌在这上面。.rail-track 里那份 1/7 是兜底值。
- */
-.rail-track {
-  --step: 0.14285714;
-  --dir: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  will-change: transform, opacity;
-}
-
-.roll--up {
-  --dir: 1;
-}
-
-.roll--down {
-  --dir: -1;
-}
-
-.rail-track--n7 {
-  --step: 0.14285714;
-}
-
-.rail-track--n5 {
-  --step: 0.2;
-}
-
-.rail-track--n3 {
-  --step: 0.33333333;
-}
-
-.rail-track--n1 {
-  --step: 1;
-}
-
-.roll--a {
-  animation: rail-roll-a 440ms var(--settle) both;
-}
-
-.roll--b {
-  animation: rail-roll-b 440ms var(--settle) both;
-}
-
-@keyframes rail-roll-a {
-  from {
-    opacity: var(--dim, 1);
-    transform: translateY(calc(100% * var(--step) * var(--dir)));
-  }
-  78% {
-    transform: translateY(calc(100% * var(--step) * var(--dir) / -10));
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes rail-roll-b {
-  from {
-    opacity: var(--dim, 1);
-    transform: translateY(calc(100% * var(--step) * var(--dir)));
-  }
-  78% {
-    transform: translateY(calc(100% * var(--step) * var(--dir) / -10));
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.rail-slot {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  width: 12rpx;
-  height: 32rpx;
-}
-
-/*
- * 浅灰点配一圈暗描边：白底上靠描边分得开，深底上靠自身亮度读得到，所以换背景不用换材质。
- * 描边和落影都压得很轻（0.12 / 0.10）：这两层在浅色图案上就是点周围的一圈灰，
- * 描边再重一档就从「分开」变成「脏」，靠点本身比胶囊亮一截也照样读得出。放大走 scale，
- * 槽位高度恒定，邻居不会被顶开。
- */
-.rail-dot {
-  width: 12rpx;
-  height: 12rpx;
-  border-radius: 999rpx;
-  background: #e9e9f0;
-  box-shadow: 0 0 0 1rpx rgba(20, 18, 28, 0.12), 0 1rpx 4rpx rgba(20, 18, 28, 0.1);
-  transition: transform 420ms var(--spring), opacity 320ms var(--spring);
-  will-change: transform, opacity;
-}
-
-.dot--focus {
-  transform: scale(1.7);
-  opacity: 1;
-}
-
-.dot--near {
-  transform: scale(1.1);
-  opacity: 0.78;
-}
-
-.dot--mid {
-  transform: scale(0.8);
-  opacity: 0.6;
-}
-
-.dot--far {
-  transform: scale(0.55);
-  opacity: 0.44;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .rail {
-    transition: none;
-  }
-
-  .rail-body {
-    animation: none;
-  }
-
-  /*
-   * --step 收成 0，同一对 keyframes 就只剩一次交叉淡入：仍然交代翻过一页，
-   * 但屏幕上没有东西在移动。时长跟着缩短，淡入不该拖成一段慢速闪烁。
-   */
-  .rail-track {
-    --step: 0;
-    --dim: 0.4;
-  }
-
-  .roll--a,
-  .roll--b {
-    animation-duration: 220ms;
-  }
-
-  .rail-dot {
-    transition: none;
-  }
-}
-
-@media (prefers-reduced-transparency: reduce) {
-  .rail-body {
-    background: rgba(28, 26, 36, 0.78);
-    backdrop-filter: none;
-  }
-}
-</style>

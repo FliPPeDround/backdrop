@@ -170,34 +170,77 @@ const tipX = computed(() => bandLeft.value + cursorX.value)
 </script>
 
 <template>
+  <!--
+    整条带子横向铺满、内容居中：手指不必先精准点到胶囊上才能起滑。
+    高度只包住胶囊，指针读数往上飘，所以比胶囊高一点。
+    父层整条底部是 pointer-events: none（拇指根部要能起手势），轨道自己把触摸收回来。
+  -->
   <view
-    class="rail"
-    :class="{ 'rail--away': away }"
+    class="relative flex justify-center pt-[58rpx] pointer-events-auto
+      [transition:transform_460ms_var(--settle),opacity_460ms_var(--settle)] delay-[40ms]
+      motion-reduce:transition-none"
+    :class="away ? 'on:opacity-0 on:translate-y-[90rpx]' : ''"
     @touchstart="onTouchStart"
     @touchmove="onTouchMove"
     @touchend="onTouchEnd"
     @touchcancel="onTouchEnd"
   >
-    <view class="tip" :class="{ 'tip--on': tipOn && !away }" :style="{ transform: `translateX(${tipX}rpx)` }">
-      <view class="tip-body">
-        <view class="tip-dot" :style="colorPaint(current)" />
-        <text class="tip-label">{{ current?.label }}</text>
-        <text class="tip-count">{{ current?.count }}</text>
+    <!--
+      读数挂在指针正上方。左沿 = 带子内衬（inline transform 里的 bandLeft）+ 胶囊内的那个 12rpx，
+      内层再往回挪半个自身宽度，所以气泡中心永远压在色点中心上，不看气泡自己多宽。
+    -->
+    <view
+      class="absolute top-0 left-[12rpx] w-0 opacity-0 origin-bottom [transition:opacity_240ms_var(--settle)]"
+      :class="tipOn && !away ? 'on:opacity-100' : ''"
+      :style="{ transform: `translateX(${tipX}rpx)` }"
+    >
+      <view
+        class="absolute bottom-[6rpx] left-0 flex items-center px-[18rpx] py-[8rpx] rounded-full
+          -translate-x-1/2 whitespace-nowrap
+          bg-[rgba(22,20,28,0.82)] shadow-[inset_0_1rpx_0_rgba(255,255,255,0.18),0_8rpx_22rpx_rgba(8,7,12,0.36)]"
+      >
+        <view class="w-[14rpx] h-[14rpx] mr-[10rpx] rounded-full" :style="colorPaint(current)" />
+        <text class="text-[23rpx] font-600 tracking-[0.2rpx] text-white">{{ current?.label }}</text>
+        <text class="ml-[10rpx] text-[21rpx] tabular-nums text-ink-3">{{ current?.count }}</text>
       </view>
     </view>
 
-    <view class="capsule" :style="{ width: `${CAPSULE}rpx` }">
-      <view class="dots">
+    <!--
+      深色磨砂：色点本身够亮，底只要压住图案的杂讯就够，压重了整条会变成一块黑条。
+      材质和右侧轨道、dock 是同一份（rgba(28,26,36,·) + blur + 亮顶边），悬浮控件不该各是各的玻璃。
+    -->
+    <view
+      class="relative box-border flex-none px-[12rpx] py-[6rpx] rounded-full
+        bg-[rgba(28,26,36,0.24)] shadow-[inset_0_1rpx_0_rgba(255,255,255,0.16),0_6rpx_18rpx_rgba(8,7,12,0.16)]
+        backdrop-blur-[16px] backdrop-saturate-150
+        reduce-transparency:bg-[rgba(20,18,26,0.82)] reduce-transparency:backdrop-filter-none"
+      :style="{ width: `${CAPSULE}rpx` }"
+    >
+      <view class="flex items-center">
         <view
           v-for="(item, i) in items"
           :key="item.id"
-          class="slot"
+          class="relative flex items-center justify-center h-[44rpx]"
           :style="{ width: `${SLOT}rpx` }"
           @tap.stop="commit(i)"
         >
+          <!--
+            选中 = 色点自己长出一圈：2rpx 描边 + 3rpx 暗缝 + 4rpx 白环，外径 40rpx，
+            正正好待在 44rpx 的格子里。box-shadow 永远和元素同心，不存在居不居中这件事；
+            暗缝就是「边框离色点还有一点距离」的那点空隙，白环保证任何色相、任何底色上都读得出来。
+            这个分类里一个都没有（opacity-30）时看得出来，也省得点进去撞一屏空。
+          -->
           <view
-            class="dot"
-            :class="[i === preview ? 'dot--focus' : '', item.count === 0 ? 'dot--empty' : '']"
+            class="w-[22rpx] h-[22rpx] rounded-full
+              shadow-[0_0_0_2rpx_rgba(8,7,12,0.28),0_2rpx_6rpx_rgba(8,7,12,0.2)]
+              [transition:box-shadow_320ms_var(--spring),opacity_320ms_var(--spring)]
+              motion-reduce:transition-none"
+            :class="[
+              i === preview
+                ? 'on:shadow-[0_0_0_2rpx_rgba(8,7,12,0.32),0_0_0_5rpx_rgba(20,18,26,0.55),0_0_0_9rpx_rgba(255,255,255,0.92),0_2rpx_10rpx_rgba(8,7,12,0.3)]'
+                : '',
+              item.count === 0 ? 'opacity-30' : '',
+            ]"
             :style="colorPaint(item)"
           />
         </view>
@@ -205,153 +248,3 @@ const tipX = computed(() => bandLeft.value + cursorX.value)
     </view>
   </view>
 </template>
-
-<style scoped>
-/*
- * 整条带子横向铺满、内容居中：手指不必先精准点到胶囊上才能起滑。
- * 高度只包住胶囊，指针读数往上飘，所以比胶囊高一点。
- */
-.rail {
-  position: relative;
-  display: flex;
-  justify-content: center;
-  padding-top: 58rpx;
-  /* 父层整条底部是 pointer-events: none（拇指根部要能起手势），轨道自己把触摸收回来 */
-  pointer-events: auto;
-  transition: transform 460ms var(--settle), opacity 460ms var(--settle);
-  transition-delay: 40ms;
-}
-
-.rail--away {
-  opacity: 0;
-  transform: translateY(90rpx);
-}
-
-/*
- * 深色磨砂：色点本身够亮，底只要压住图案的杂讯就够，压重了整条会变成一块黑条。
- * 材质和右侧轨道、dock 是同一份（rgba(28,26,36,·) + blur + 亮顶边），
- * 悬浮控件不该各是各的玻璃。
- */
-.capsule {
-  position: relative;
-  box-sizing: border-box;
-  flex: none;
-  padding: 6rpx 12rpx;
-  border-radius: 999rpx;
-  background: rgba(28, 26, 36, 0.24);
-  box-shadow: inset 0 1rpx 0 rgba(255, 255, 255, 0.16), 0 6rpx 18rpx rgba(8, 7, 12, 0.16);
-  backdrop-filter: blur(16px) saturate(150%);
-}
-
-.dots {
-  display: flex;
-  align-items: center;
-}
-
-.slot {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 44rpx;
-}
-
-/*
- * 色点自带一圈暗描边和落影：浅色点（白、黄）落在浅色图案上靠描边分得开，
- * 深色点（棕、紫）落在深色图案上靠自身亮度也读得到，一套材质两种底都成立。
- */
-.dot {
-  width: 22rpx;
-  height: 22rpx;
-  border-radius: 999rpx;
-  box-shadow: 0 0 0 2rpx rgba(8, 7, 12, 0.28), 0 2rpx 6rpx rgba(8, 7, 12, 0.2);
-  transition: box-shadow 320ms var(--spring), opacity 320ms var(--spring);
-}
-
-/*
- * 选中 = 色点自己长出一圈：2rpx 描边 + 3rpx 暗缝 + 4rpx 白环，外径 40rpx，
- * 正正好待在 44rpx 的格子里。
- * box-shadow 永远和元素同心 —— 不是让一个圈去「追」格子中心，所以不存在居不居中这件事；
- * 暗缝就是「边框离色点还有一点距离」的那点空隙，白环保证任何色相、任何底色上都读得出来。
- */
-.dot--focus {
-  box-shadow:
-    0 0 0 2rpx rgba(8, 7, 12, 0.32),
-    0 0 0 5rpx rgba(20, 18, 26, 0.55),
-    0 0 0 9rpx rgba(255, 255, 255, 0.92),
-    0 2rpx 10rpx rgba(8, 7, 12, 0.3);
-}
-
-/* 这个分类里一个都没有：看得出来，也省得点进去撞一屏空 */
-.dot--empty {
-  opacity: 0.3;
-}
-
-/*
- * 读数挂在指针正上方。左沿 = 带子内衬（inline transform 里的 bandLeft）+ 胶囊内的那个 12rpx，
- * 内层再往回挪半个自身宽度，所以气泡中心永远压在色点中心上，不看气泡自己多宽。
- */
-.tip {
-  position: absolute;
-  top: 0;
-  left: 12rpx;
-  width: 0;
-  opacity: 0;
-  transform-origin: 50% 100%;
-  transition: opacity 240ms var(--settle);
-}
-
-.tip--on {
-  opacity: 1;
-}
-
-.tip-body {
-  position: absolute;
-  bottom: 6rpx;
-  left: 0;
-  display: flex;
-  align-items: center;
-  padding: 8rpx 18rpx;
-  border-radius: 999rpx;
-  background: rgba(22, 20, 28, 0.82);
-  box-shadow: inset 0 1rpx 0 rgba(255, 255, 255, 0.18), 0 8rpx 22rpx rgba(8, 7, 12, 0.36);
-  transform: translateX(-50%);
-  white-space: nowrap;
-}
-
-.tip-dot {
-  width: 14rpx;
-  height: 14rpx;
-  margin-right: 10rpx;
-  border-radius: 999rpx;
-}
-
-.tip-label {
-  font-size: 23rpx;
-  font-weight: 600;
-  letter-spacing: 0.2rpx;
-  color: #fff;
-}
-
-.tip-count {
-  margin-left: 10rpx;
-  font-size: 21rpx;
-  font-variant-numeric: tabular-nums;
-  color: var(--ink-3);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .rail,
-  .dot {
-    transition: none;
-  }
-}
-
-/* 要求降低透明度时收成实色：这层材质全靠 backdrop-filter 撑着 */
-@media (prefers-reduced-transparency: reduce) {
-  .capsule {
-    background: rgba(20, 18, 26, 0.82);
-    backdrop-filter: none;
-  }
-}
-</style>
