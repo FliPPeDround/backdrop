@@ -8,7 +8,7 @@
 
 精选渐变、光晕、网格等背景图案，在线预览真机效果，一键复制适配代码，无缝集成到你的小程序项目中。
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE) [![Netlify Status](https://api.netlify.com/api/v1/badges/f3671cec-f4c7-4944-a5b4-99a9c8c1ade2/deploy-status)](https://app.netlify.com/projects/mpbackdrop/deploys)
 
 ## 特性
 

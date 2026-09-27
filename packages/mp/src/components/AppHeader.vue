@@ -19,7 +19,6 @@ const props = defineProps<{
   inFilter: boolean
   total: number
   colors: readonly { id: string, label: string, swatch: string }[]
-  favouriteCount: number
   /** 正在生效的颜色筛选，null = 全部 */
   filterLabel: string | null
   /** 首次进来的手势提示，做过任意一个手势之后永久退场 */
@@ -31,7 +30,6 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  favourites: []
   filterColor: [id: string]
 }>()
 
@@ -59,9 +57,9 @@ function readCapsule(sys: { statusBarHeight?: number, windowWidth: number }): Ca
 }
 
 /**
- * 顶栏几何：品牌行与胶囊同高、同一条中线，右侧再让出胶囊实际占的宽度，
- * 否则顶部的收藏读数会被压在胶囊底下（真机上最右边那颗星星正是这么撞上去的）。
+ * 顶栏几何：品牌行与胶囊同高、同一条中线，看起来才像这根导航条本来就在那儿。
  * 手机不转屏，所以这些是常量，算一次就够 —— 不必每次渲染都问一遍系统。
+ * 这一行现在只有标形和字标，右侧不再有会伸到胶囊底下的东西，也就不用再让位。
  */
 const system = uni.getSystemInfoSync()
 const capsule = readCapsule(system)
@@ -69,8 +67,6 @@ const nav = {
   /** 整块标题区的起点：胶囊上沿 = 状态栏 + 胶囊上下的对称间隙 */
   top: capsule.top,
   height: capsule.height,
-  /** 品牌行要额外让出的右内缩（.head 自己已经有 36rpx 内边距，这里只补差额） */
-  right: Math.max(0, system.windowWidth - capsule.left + 12 - 36 * system.windowWidth / 750),
 }
 
 /** 提示退场时文字不能立刻消失，否则那 300ms 里只是一个空盒子在淡出 */
@@ -94,21 +90,13 @@ const sweepClass = computed(() => `rule-sweep--${phase.value}`)
 
 <template>
   <view class="head" :class="{ 'head--away': away }" :style="{ paddingTop: `${nav.top}px` }">
-    <view class="brand" :style="{ height: `${nav.height}px`, paddingRight: `${nav.right}px` }">
+    <view class="brand" :style="{ height: `${nav.height}px` }">
       <BrandMark />
       <text class="wordmark">Backdrop</text>
-      <view
-        class="fav press"
-        hover-class="press--on"
-        :hover-stay-time="60"
-        @tap.stop="emit('favourites')"
-      >
-        <text class="fav-star" :class="{ 'fav-star--on': favouriteCount > 0 }">★</text>
-        <RollingNumber :value="favouriteCount" :digits="2" :size="23" />
-      </view>
     </view>
 
     <view class="rule">
+      <view class="rule-line" />
       <view class="rule-sweep" :class="sweepClass" />
     </view>
 
@@ -206,39 +194,28 @@ const sweepClass = computed(() => `rule-sweep--${phase.value}`)
   text-shadow: 0 1rpx 8rpx rgba(8, 7, 12, 0.45);
 }
 
-/* 收藏读数：一张盖到顶的计数，点进去就是收藏分类 */
-.fav {
-  display: flex;
-  align-items: center;
-  margin-left: auto;
-  /* 上下的余量给够：这一行是个能点的入口，不能只有一个字那么高 */
-  padding: 18rpx 0 18rpx 24rpx;
-  font-size: 23rpx;
-  /* 数字跟着星标一起亮：这一行整体是一个控件，不该一半白一半是页面的默认字色 */
-  color: rgba(255, 255, 255, 0.88);
-  pointer-events: auto;
-}
-
-.fav-star {
-  margin-right: 8rpx;
-  font-size: 24rpx;
-  line-height: 1;
-  color: rgba(255, 255, 255, 0.55);
-  text-shadow: 0 0 3rpx rgba(8, 7, 12, 0.6);
-  transition: color 420ms var(--settle);
-}
-
-/* 有收藏才亮起来：这行数字是攒出来的，值得一点颜色 */
-.fav-star--on {
-  color: #ffd97a;
-}
-
 .rule {
   position: relative;
-  /* 2rpx 在 2 倍屏上正好是一个物理像素：1rpx 会渲染成半像素，细到看不见 */
+  /*
+   * 带子比发丝线高，是因为扫光要有地方发光。
+   * 上一版把 4rpx 的光塞进 2rpx 的 overflow 里裁 —— 开发工具的 Chromium 还能看见
+   * 那一两个像素，真机（WKWebView / XWeb）的亚像素裁剪常常把它整个吃掉，
+   * 表现就是「开发工具有动画、真机没有」。现在不裁：整条带子就是光要走的路。
+   * 下边距是负的：21 + 12 - 5 = 28rpx，和原来「26 边距 + 2 高的线」占的那一格完全一样，
+   * 发丝线的位置和下面读数行的位置都一点没动。
+   */
+  height: 12rpx;
+  margin-top: 21rpx;
+  margin-bottom: -5rpx;
+}
+
+/* 发丝线：2rpx 在 2 倍屏上正好一个物理像素，1rpx 会渲染成半像素、细到看不见 */
+.rule-line {
+  position: absolute;
+  top: 5rpx;
+  right: 0;
+  left: 0;
   height: 2rpx;
-  margin-top: 26rpx;
-  overflow: hidden;
   background: linear-gradient(90deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.08) 62%, rgba(255, 255, 255, 0) 100%);
 }
 
@@ -248,12 +225,12 @@ const sweepClass = computed(() => `rule-sweep--${phase.value}`)
  */
 .rule-sweep {
   position: absolute;
-  top: -1rpx;
+  top: 0;
   left: 0;
-  width: 160rpx;
-  height: 4rpx;
-  border-radius: 999rpx;
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.92) 50%, rgba(255, 255, 255, 0) 100%);
+  width: 200rpx;
+  height: 12rpx;
+  /* 一团纵向的晕，不是一条硬边：屏幕上不会出现「差一个像素就整条消失」 */
+  background: radial-gradient(closest-side, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0));
 }
 
 .rule-sweep--a {

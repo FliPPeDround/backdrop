@@ -24,6 +24,12 @@ const PAD = 12
 const SCREEN_RPX = 750
 /** 胶囊宽度：格子等宽又有内衬，宽度是算出来的，CSS 里也就不用再写一遍 */
 const CAPSULE = computed(() => props.items.length * SLOT + PAD * 2)
+/**
+ * 胶囊在整条带子里的左内衬（带子从左铺满、胶囊居中）。
+ * 色点是画在胶囊里的，气泡挂在带子上，两套坐标差的正是这一段 ——
+ * 少了它，气泡就会整整偏出一个内衬。
+ */
+const bandLeft = computed(() => (SCREEN_RPX - CAPSULE.value) / 2)
 
 const activeIndex = computed(() => {
   const found = props.items.findIndex(item => item.id === props.active)
@@ -39,19 +45,23 @@ function clampIndex(index: number) {
 }
 
 /**
- * 指针（白圈）位置，单位 rpx，相对胶囊内沿。选中格由 active 决定，指针由手指决定：
- * 拖动时两者分开，读数写着「松手会落到哪一格」，画面里的背景一张都不换——
- * 拖一次换一次列表会把 swiper 里正挂着的图案整片换掉，那不是拨盘该有的手感。
+ * 手指位置，单位 rpx，相对胶囊内沿。它是读数气泡的行进依据：拖动时气泡跟着手指走，
+ * 写着「松手会落到哪一格」，而画面里的背景一张都不换 —— 拖一次换一次列表
+ * 会把 swiper 里正挂着的图案整片换掉，那不是拨盘该有的手感。
  */
 const cursorX = ref(centerOf(activeIndex.value))
-/** 指针当前压住的格子（拖动中的预览值，未提交） */
+/** 当前该亮起的那一格：拖动时是手指压着的预览值，平时就是选中的那一格 */
 const preview = ref(activeIndex.value)
 const dragging = ref(false)
 const tipOn = ref(false)
 
 watch(activeIndex, (index) => {
-  if (!dragging.value)
-    cursorX.value = centerOf(index)
+  if (dragging.value)
+    return
+  cursorX.value = centerOf(index)
+  // 选中圈和放大点都挂在 preview 上：只挪气泡不挪它们，圈就会留在上一格
+  // （点了页头的色点、或分享链接复位色系时，看着就是「选中效果没居中」）
+  preview.value = index
 })
 
 let startX = 0
@@ -75,7 +85,7 @@ function point(event: { touches: readonly { clientX: number }[] }) {
  * 容器横向铺满、胶囊居中，所以左边距是算出来的，不用 createSelectorQuery 那种异步量取。
  */
 function localX(clientX: number) {
-  const left = (SCREEN_RPX - CAPSULE.value) / 2 + PAD
+  const left = bandLeft.value + PAD
   return (clientX / pxPerRpx) - left
 }
 
@@ -155,6 +165,8 @@ function commit(index: number) {
 
 /** 读数是「松手会落到哪一格」，所以跟着指针走，而不是跟着已选中的那一格 */
 const current = computed(() => props.items[preview.value])
+/** 气泡锚点：带子内的内衬 + 指针在胶囊里的位置，正好落在色点中心 */
+const tipX = computed(() => bandLeft.value + cursorX.value)
 </script>
 
 <template>
@@ -166,7 +178,7 @@ const current = computed(() => props.items[preview.value])
     @touchend="onTouchEnd"
     @touchcancel="onTouchEnd"
   >
-    <view class="tip" :class="{ 'tip--on': tipOn && !away }" :style="{ transform: `translateX(${cursorX}rpx)` }">
+    <view class="tip" :class="{ 'tip--on': tipOn && !away }" :style="{ transform: `translateX(${tipX}rpx)` }">
       <view class="tip-body">
         <view class="tip-dot" :style="colorPaint(current)" />
         <text class="tip-label">{{ current?.label }}</text>
@@ -190,12 +202,6 @@ const current = computed(() => props.items[preview.value])
           />
         </view>
       </view>
-      <!-- 白圈压在色点之上：色相千变万化，只有中性色能在任何一格上读得出来 -->
-      <view
-        class="cursor"
-        :class="{ 'cursor--drag': dragging }"
-        :style="{ transform: `translateX(${cursorX - SLOT / 2}rpx)` }"
-      />
     </view>
   </view>
 </template>
@@ -243,6 +249,7 @@ const current = computed(() => props.items[preview.value])
 }
 
 .slot {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -258,12 +265,21 @@ const current = computed(() => props.items[preview.value])
   height: 22rpx;
   border-radius: 999rpx;
   box-shadow: 0 0 0 2rpx rgba(8, 7, 12, 0.28), 0 2rpx 6rpx rgba(8, 7, 12, 0.2);
-  transition: transform 320ms var(--spring), opacity 320ms var(--spring);
-  will-change: transform;
+  transition: box-shadow 320ms var(--spring), opacity 320ms var(--spring);
 }
 
+/*
+ * 选中 = 色点自己长出一圈：2rpx 描边 + 3rpx 暗缝 + 4rpx 白环，外径 40rpx，
+ * 正正好待在 44rpx 的格子里。
+ * box-shadow 永远和元素同心 —— 不是让一个圈去「追」格子中心，所以不存在居不居中这件事；
+ * 暗缝就是「边框离色点还有一点距离」的那点空隙，白环保证任何色相、任何底色上都读得出来。
+ */
 .dot--focus {
-  transform: scale(1.42);
+  box-shadow:
+    0 0 0 2rpx rgba(8, 7, 12, 0.32),
+    0 0 0 5rpx rgba(20, 18, 26, 0.55),
+    0 0 0 9rpx rgba(255, 255, 255, 0.92),
+    0 2rpx 10rpx rgba(8, 7, 12, 0.3);
 }
 
 /* 这个分类里一个都没有：看得出来，也省得点进去撞一屏空 */
@@ -271,26 +287,10 @@ const current = computed(() => props.items[preview.value])
   opacity: 0.3;
 }
 
-.cursor {
-  position: absolute;
-  top: 6rpx;
-  left: 12rpx;
-  width: 54rpx;
-  height: 44rpx;
-  border: 2rpx solid rgba(255, 255, 255, 0.86);
-  border-radius: 999rpx;
-  /* 白圈外面再压一圈暗边：浅色图案上胶囊自己也发白，只靠白圈会糊在一起 */
-  box-shadow: 0 0 0 3rpx rgba(8, 7, 12, 0.26), 0 2rpx 10rpx rgba(8, 7, 12, 0.3);
-  transition: transform 420ms var(--spring);
-  will-change: transform;
-}
-
-/* 跟手那一段必须一帧不落地贴住手指：过渡会让指针滑在手指后面 */
-.cursor--drag {
-  transition: none;
-}
-
-/* 读数挂在指针正上方：左沿对齐指针，内层再往回挪一半宽度，不看胶囊宽度脸色 */
+/*
+ * 读数挂在指针正上方。左沿 = 带子内衬（inline transform 里的 bandLeft）+ 胶囊内的那个 12rpx，
+ * 内层再往回挪半个自身宽度，所以气泡中心永远压在色点中心上，不看气泡自己多宽。
+ */
 .tip {
   position: absolute;
   top: 0;
@@ -342,8 +342,7 @@ const current = computed(() => props.items[preview.value])
 
 @media (prefers-reduced-motion: reduce) {
   .rail,
-  .dot,
-  .cursor {
+  .dot {
     transition: none;
   }
 }

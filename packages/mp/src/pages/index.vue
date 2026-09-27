@@ -2,7 +2,7 @@
 import type { Pattern } from '@backdrop/data'
 import { gridPatterns } from '@backdrop/data'
 import { PATTERN_CATEGORIES, usePatternBrowser } from '@backdrop/shared'
-import { onBackPress } from '@dcloudio/uni-app'
+import { onBackPress, onLoad, onShareAppMessage, onShareTimeline, onShow } from '@dcloudio/uni-app'
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import AppHeader from '@/components/AppHeader.vue'
 import ColorRail from '@/components/ColorRail.vue'
@@ -39,8 +39,6 @@ const start = Math.floor(Math.random() * filteredPatterns.value.length)
 const index = ref(start)
 /** 只有「挂载时正好是当前页」的那一层才播合焦，手势切页不再叠第二次动画 */
 const armed = ref(start)
-/** 合焦还是重掷：随机跳是断开的一次落位，动画该读作「换了一张」而不是「翻了一页」 */
-const entry = ref<'focus' | 'shuffle'>('focus')
 // 首帧必须 0ms 落到随机页：从 0 滑过去要穿过一整片没挂载的空位
 const duration = ref(0)
 /** 1 = 往前翻（内容往上走），-1 = 往后退，0 = 没有方向（筛选落位、随机跳） */
@@ -109,8 +107,6 @@ const sheetDragging = ref(false)
 const sheetProgress = ref(0)
 /** 双击收藏时，星标要跟着在 dock 里弹一下：两处同时动才看得出是同一次操作 */
 const bumpSignal = ref(0)
-/** 随机重掷的那一下：骰子自己转一圈 */
-const shuffleKey = ref(0)
 const bursts = ref<{ id: number, x: number, y: number }[]>([])
 let burstSeq = 0
 
@@ -158,12 +154,19 @@ watch(active, (next, prev) => {
 
 /** 色系是「点一次就要看到对应颜色」的一步，所以它带来的落点永远是第一张 */
 let jumpToFirst = false
+/** 正在处理分享链接：这一轮筛选复位不算一次筛选操作 */
+let deepLink = false
 
 watch(activeColor, () => {
   jumpToFirst = true
 }, { flush: 'sync' })
 
 function reanchor() {
+  // 分享落点自己会收尾：复位筛选时让开，别抢着跳到第一张
+  if (deepLink) {
+    jumpToFirst = false
+    return
+  }
   const list = filteredPatterns.value
   const at = list.findIndex(item => item.id === shown.value.id)
   const jump = jumpToFirst || at < 0
@@ -191,7 +194,6 @@ function reanchor() {
     return
   pinnedAt.value = -1
   quiet = true
-  entry.value = 'focus'
   // 已经站在第一张上时不重播合焦：那会像「点了没反应，只是糊了一下」
   armed.value = at === 0 && index.value === 0 ? -1 : 0
   duration.value = 0
@@ -205,7 +207,82 @@ watch([activeCategory, activeColor, () => filteredPatterns.value.length], reanch
 // 首帧已经落到随机页，把曲线还回去，之后的切页动画照常用
 onMounted(() => {
   nextTick(() => (duration.value = SWIPE_MS))
+  // 右上角菜单里两个入口都打开：转发给朋友、分享到朋友圈
+  uni.showShareMenu({ withShareTicket: false, menus: ['shareAppMessage', 'shareTimeline'] })
 })
+
+/** 分享过的那张：同一个 id 在一次会话里只落一次，否则每次切回前台都会被拽回去 */
+let lastShared: string | null = null
+
+/**
+ * 链接里的背景。认 id 也认名字 —— 手写、复制粘贴进来的链接不至于打不开。
+ */
+function patternFromLink(raw?: unknown) {
+  if (raw === undefined || raw === null)
+    return
+  let text = `${raw}`.trim()
+  // 链接里的空格和中文是编码过的（%20 之类），先解一次再比，手写链接才不会白跑
+  try {
+    text = decodeURIComponent(text).trim()
+  }
+  catch {}
+  const key = text.toLowerCase()
+  if (!key)
+    return
+  return gridPatterns.find(
+    item => item.id.toLowerCase() === key || item.name.toLowerCase() === key,
+  )
+}
+
+/**
+ * 落到分享进来的那张。
+ *
+ * 先把两个筛选轴复位：目标可能正落在当前筛选之外，不复位就会成了一张被钉住的「别人」。
+ * 复位那一下 reanchor 会想跳第一张，用 deepLink 让它让开 —— 这次落点只由分享决定。
+ */
+function openShared(raw?: unknown) {
+  const target = patternFromLink(raw)
+  if (!target || lastShared === target.id)
+    return
+  lastShared = target.id
+
+  deepLink = true
+  activeCategory.value = 'all'
+  activeColor.value = 'all'
+  deepLink = false
+
+  pinnedAt.value = -1
+  quiet = true
+  duration.value = 0
+  shown.value = target
+  index.value = Math.max(0, filteredPatterns.value.findIndex(item => item.id === target.id))
+  // 分享进来就是把这张摆到眼前：和首帧一样，让它自己合焦一次
+  armed.value = index.value
+}
+
+onLoad((query) => {
+  openShared(query?.pattern)
+})
+
+onShow(() => {
+  // 小程序还在后台时点分享卡片，只有「这次进入」的参数里才有链接里的背景
+  openShared(uni.getEnterOptionsSync?.()?.query?.pattern)
+})
+
+/**
+ * 分享卡片：path 带上这一张的 id，别人点开就直接落到它。
+ * 不传 imageUrl —— 图案本来就是这一屏本身，微信截的那张图正好就是它。
+ */
+onShareAppMessage(() => ({
+  title: `${active.value.name} · Backdrop 背景图案库`,
+  path: `/pages/index?pattern=${active.value.id}`,
+}))
+
+/** 朋友圈走单页模式，同样是页面路径 + 查询串，只是字段名换成 query */
+onShareTimeline(() => ({
+  title: `${active.value.name} · Backdrop 背景图案库`,
+  query: `pattern=${active.value.id}`,
+}))
 
 onBackPress(() => {
   if (codeOpen.value) {
@@ -228,23 +305,15 @@ function isNear(i: number) {
   return d <= 1 || slides.value.length - d <= 1
 }
 
-/** 只有正好落在这一格的那一层播入场动画：翻页是合焦，随机跳是重掷 */
-function slideClass(i: number) {
-  if (i !== armed.value)
-    return ''
-  return entry.value === 'shuffle' ? 'slide--shuffle' : 'slide--enter'
-}
-
-function goTo(target: number, mode: 'auto' | 'shuffle' = 'auto') {
+function goTo(target: number) {
   if (target < 0 || target === index.value)
     return
   // 相邻页沿用滑动曲线，和手势是同一套语言；跨多页时中途全是没挂载的空位，
   // 滑动会拖出一屏白底，所以 0ms 直接落到目标再播合焦。
-  const near = mode === 'auto' && Math.abs(target - index.value) <= 1
+  const near = Math.abs(target - index.value) <= 1
   duration.value = near ? SWIPE_MS : 0
   // 相邻目标本来就在 ±1 窗口里挂着，补上动画类会让它凭空重播一次合焦
   armed.value = near ? -1 : target
-  entry.value = mode === 'shuffle' ? 'shuffle' : 'focus'
   quiet = !near
   index.value = target
   if (!near)
@@ -268,7 +337,6 @@ function onSwiperChange(event: UniHelper.SwiperOnChangeEvent) {
     return
   index.value = next
   armed.value = -1
-  entry.value = 'focus'
   dismissHint()
 }
 
@@ -276,33 +344,9 @@ function onFavouriteChange(next: boolean) {
   uni.showToast({ title: next ? '已收藏' : '已取消收藏', icon: 'none' })
 }
 
-/** 顶部那行收藏读数直接进收藏分类：攒起来的数字得能点进去看 */
-function openFavourites() {
-  activeCategory.value = 'favourites'
-  // 带着色系进来很可能撞上一屏空（收藏里正好没有那个色），进收藏就先看全部
-  activeColor.value = 'all'
-  pickerOpen.value = true
-  dismissHint()
-}
-
 function pickColor(id: string) {
   activeColor.value = id as typeof activeColor.value
   dismissHint()
-}
-
-/** 随机换一张：断开的一次落位，走重掷动画（比翻页的合焦更糊更涨） */
-function shuffle() {
-  const list = filteredPatterns.value
-  if (list.length < 2)
-    return
-  shuffleKey.value += 1
-  dismissHint()
-  uni.vibrateShort()
-  let at = Math.floor(Math.random() * list.length)
-  // 连点两次不该原地不动
-  if (list[at]?.id === active.value.id)
-    at = (at + 1) % list.length
-  goTo(slides.value.findIndex(item => item.id === list[at]!.id), 'shuffle')
 }
 
 /*
@@ -446,7 +490,7 @@ const gestureHint = computed(() => (hintVisible.value && !sheetOpen.value ? gest
         @change="onSwiperChange"
       >
         <swiper-item v-for="(pattern, i) in slides" :key="pattern.id">
-          <view v-if="isNear(i)" class="slide" :class="slideClass(i)">
+          <view v-if="isNear(i)" class="slide" :class="i === armed ? 'slide--enter' : ''">
             <PatternSurface :pattern="pattern" />
           </view>
         </swiper-item>
@@ -465,12 +509,10 @@ const gestureHint = computed(() => (hintVisible.value && !sheetOpen.value ? gest
         :in-filter="inFilter"
         :total="count"
         :colors="activeColors"
-        :favourite-count="ids.length"
         :filter-label="filterLabel"
         :hint="gestureHint"
         :turn="headTurn"
         :away="peeking"
-        @favourites="openFavourites"
         @filter-color="pickColor"
       />
 
@@ -478,22 +520,21 @@ const gestureHint = computed(() => (hintVisible.value && !sheetOpen.value ? gest
         <ColorRail :items="colors" :active="activeColor" :away="peeking" @change="pickColor" />
 
         <view class="dock" :class="{ 'dock--away': peeking }">
-          <view
-            class="dock-circle press"
+          <!--
+            分享是这个小程序最该被按下的那一个，所以它站在首页。
+            必须是 button + open-type=share —— 转发面板只有这个入口拉得起来。
+          -->
+          <!-- #ifdef MP-WEIXIN -->
+          <button
+            class="dock-circle dock-share press"
+            open-type="share"
             hover-class="press--on"
             :hover-stay-time="60"
-            @tap.stop="shuffle"
           >
-            <view :key="shuffleKey" class="dice" :class="{ 'dice--roll': shuffleKey > 0 }">
-              <view class="dice-face">
-                <view class="pip pip--tl" />
-                <view class="pip pip--tr" />
-                <view class="pip pip--c" />
-                <view class="pip pip--bl" />
-                <view class="pip pip--br" />
-              </view>
-            </view>
-          </view>
+            <!-- 和 web 端详情页那颗分享按钮同一枚图标：i-carbon:share -->
+            <view class="i-carbon-share share-icon" />
+          </button>
+          <!-- #endif -->
 
           <view
             class="dock-btn press"
@@ -520,7 +561,7 @@ const gestureHint = computed(() => (hintVisible.value && !sheetOpen.value ? gest
         :style="{ left: `${item.x}px`, top: `${item.y}px` }"
       >
         <view class="burst-ring" />
-        <text class="burst-star">★</text>
+        <view class="i-carbon-star-filled burst-mark" />
       </view>
     </view>
 
@@ -644,30 +685,6 @@ const gestureHint = computed(() => (hintVisible.value && !sheetOpen.value ? gest
 }
 
 /*
- * 随机重掷比合焦重一档：合焦是「这一张就位了」，重掷是「换了一张」，
- * 后者要糊得更彻底、涨得更开，才读得出和翻页不是同一件事。
- */
-.slide--shuffle {
-  animation: shuffle-in 760ms var(--settle) both;
-}
-
-@keyframes shuffle-in {
-  from {
-    opacity: 0;
-    transform: scale(1.09);
-    filter: blur(26px);
-  }
-  99% {
-    filter: blur(1px);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-    filter: none;
-  }
-}
-
-/*
  * 白底之后，浅色图案上的标题全靠这层压暗；0.5 压不住近白底，提到 0.62。
  * 中段留一段 0.52 的平台再收到 0：标题区拉开之后读数落在渐变尾段，纯线性衰减会让它
  * 掉到 1.9:1，平台托回 3:1 以上，而图案照样在这层之下完整浮出来。
@@ -752,77 +769,24 @@ const gestureHint = computed(() => (hintVisible.value && !sheetOpen.value ? gest
 }
 
 /*
- * 骰子：随机这件事不该用文字说。
- * 五点自己画——图形是空心的，浅色图案上白描边加落影也读得出来；
- * 换成图标字体又要赌内核认不认那个字形。
+ * button 自带灰底、左右内边距、行高和一圈 ::after 描边：这一条只负责把这些清掉，
+ * 圆形和材质继续交给 .dock-circle，浮在图案上的几颗控件才是同一份玻璃。
  */
-.dice {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40rpx;
-  height: 40rpx;
-  will-change: transform;
+.dock-share {
+  padding: 0;
+  margin-left: 0;
+  border: none;
+  line-height: 1;
 }
 
-.dice--roll {
-  animation: dice-roll 620ms var(--spring) both;
+.dock-share::after {
+  border: none;
 }
 
-@keyframes dice-roll {
-  from {
-    transform: rotate(140deg) scale(0.72);
-  }
-  60% {
-    transform: rotate(-8deg) scale(1.04);
-  }
-  to {
-    transform: rotate(0) scale(1);
-  }
-}
-
-.dice-face {
-  position: relative;
-  box-sizing: border-box;
-  width: 36rpx;
-  height: 36rpx;
-  border: 2rpx solid rgba(255, 255, 255, 0.92);
-  border-radius: 9rpx;
-  box-shadow: 0 0 6rpx rgba(8, 7, 12, 0.45);
-}
-
-.pip {
-  position: absolute;
-  width: 7rpx;
-  height: 7rpx;
-  border-radius: 999rpx;
-  background: rgba(255, 255, 255, 0.92);
-}
-
-.pip--tl {
-  top: 5rpx;
-  left: 5rpx;
-}
-
-.pip--tr {
-  top: 5rpx;
-  right: 5rpx;
-}
-
-.pip--c {
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-
-.pip--bl {
-  bottom: 5rpx;
-  left: 5rpx;
-}
-
-.pip--br {
-  right: 5rpx;
-  bottom: 5rpx;
+/* 分享图标由图标集出（宽度就是 1em），这里只管它多大、什么颜色 */
+.share-icon {
+  font-size: 30rpx;
+  color: rgba(255, 255, 255, 0.92);
 }
 
 .dock-text {
@@ -833,8 +797,9 @@ const gestureHint = computed(() => (hintVisible.value && !sheetOpen.value ? gest
 }
 
 /*
- * 双击的爆开：一颗星加一圈往外散掉的环。星先亮起来再胀开，
- * 环走得比星远 —— 两者同源不同速，才像有质量的一下，而不是两个一起淡出的动画。
+ * 双击的爆开：一枚书签加一圈往外散掉的环（和 dock 里那枚同一个形状，
+ * 换成流星会让「收藏」这件事在画面里出现两种符号）。书签先亮起来再胀开，
+ * 环走得比书签远 —— 两者同源不同速，才像有质量的一下，而不是两个一起淡出的动画。
  */
 .burst {
   position: absolute;
@@ -847,13 +812,13 @@ const gestureHint = computed(() => (hintVisible.value && !sheetOpen.value ? gest
   pointer-events: none;
 }
 
-.burst-star {
+/* 炸开的这一枚就是收藏那颗实心星，只是大一号 */
+.burst-mark {
   position: absolute;
-  font-size: 92rpx;
-  line-height: 1;
+  font-size: 76rpx;
   color: #ffd97a;
-  text-shadow: 0 4rpx 22rpx rgba(8, 7, 12, 0.45);
-  animation: burst-star 720ms var(--settle) both;
+  filter: drop-shadow(0 4rpx 18rpx rgba(8, 7, 12, 0.45));
+  animation: burst-mark 720ms var(--settle) both;
 }
 
 .burst-ring {
@@ -865,7 +830,7 @@ const gestureHint = computed(() => (hintVisible.value && !sheetOpen.value ? gest
   animation: burst-ring 780ms var(--settle) both;
 }
 
-@keyframes burst-star {
+@keyframes burst-mark {
   0% {
     opacity: 0;
     transform: scale(0.32) rotate(-16deg);
@@ -919,13 +884,11 @@ const gestureHint = computed(() => (hintVisible.value && !sheetOpen.value ? gest
   }
 
   /* 不做位移和模糊，但仍要把「换了内容」交代清楚：位移换成交叉淡入淡出 */
-  .slide--enter,
-  .slide--shuffle {
+  .slide--enter {
     animation: fade-in 220ms ease both;
   }
 
-  .dice--roll,
-  .burst-star,
+  .burst-mark,
   .burst-ring {
     animation: none;
   }
