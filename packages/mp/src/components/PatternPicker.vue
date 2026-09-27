@@ -1,10 +1,14 @@
 <script setup lang="ts">
 import type { Pattern } from '@backdrop/data'
-import type { PatternCategory } from '@backdrop/shared'
+import type { PatternCategory, PatternColorChoice } from '@backdrop/shared'
+import { computed } from 'vue'
+import ColorPills from '@/components/ColorPills.vue'
 
-defineProps<{
+const props = defineProps<{
   categories: readonly { id: PatternCategory, label: string }[]
   activeCategory: PatternCategory
+  colors: readonly PatternColorChoice[]
+  activeColor: string
   patterns: readonly Pattern[]
   activeId: string
   hasMore: boolean
@@ -13,6 +17,7 @@ defineProps<{
 
 const emit = defineEmits<{
   'change-category': [id: PatternCategory]
+  'change-color': [id: string]
   'pick': [pattern: Pattern]
   'load-more': []
 }>()
@@ -21,6 +26,17 @@ const emit = defineEmits<{
 function delayOf(index: number) {
   return `${Math.min(index, 12) * 26}ms`
 }
+
+/**
+ * 分类本身有货、只是被色系筛空的时候，别让人以为收藏丢了 ——
+ * 色系是可逆的一步，得说清空的是哪一层。
+ */
+const emptyText = computed(() => {
+  const inCategory = props.colors[0]?.count ?? 0
+  return inCategory > 0
+    ? '这个色系下暂时没有，换个色系看看'
+    : '还没有收藏的背景，点右下角星星试试'
+})
 
 function pickCategory(id: string) {
   emit('change-category', id as PatternCategory)
@@ -35,6 +51,14 @@ function pickCategory(id: string) {
         :active="activeCategory"
         @change="pickCategory"
       />
+    </view>
+
+    <!--
+      两个筛选轴都留在面板顶部常驻：色系是第二个轴，
+      跟着列表滚走的话，滑到一半想换个色还得先滑回顶。
+    -->
+    <view class="colors-slot">
+      <ColorPills :items="colors" :active="activeColor" @change="emit('change-color', $event)" />
     </view>
 
     <scroll-view
@@ -62,7 +86,7 @@ function pickCategory(id: string) {
         </view>
       </view>
 
-      <text v-else class="empty">还没有收藏的背景，点右下角星星试试</text>
+      <text v-else class="empty">{{ emptyText }}</text>
 
       <text v-if="hasMore" class="hint">继续下滑</text>
     </scroll-view>
@@ -72,6 +96,10 @@ function pickCategory(id: string) {
 <style scoped>
 /* 左右让 14rpx 和卡片对齐；分类行和列表之间的间距由 Switcher 自己的 margin 负责 */
 .tabs-slot {
+  padding: 0 14rpx;
+}
+
+.colors-slot {
   padding: 0 14rpx;
 }
 

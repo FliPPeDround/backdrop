@@ -8,6 +8,7 @@
     "build": "unh build",
     "about": "unh info",
     "type-check": "vue-tsc --noEmit",
+    "check:touch": "node scripts/touch-check.mjs",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"
   },

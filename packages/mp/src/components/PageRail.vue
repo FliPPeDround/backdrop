@@ -7,6 +7,8 @@ const props = defineProps<{
   turn: number
   /** 1 = 往前翻（内容往上走），-1 = 往后退，和标题共用同一个判据 */
   dir: number
+  /** 长按看原图时整条让位：那一眼里不该有任何控件 */
+  away: boolean
 }>()
 
 /**
@@ -48,7 +50,7 @@ const trackCls = computed(() => {
 </script>
 
 <template>
-  <view v-if="total > 1" class="rail">
+  <view v-if="total > 1" class="rail" :class="{ 'rail--away': away }">
     <view class="rail-body">
       <view :key="turn" class="rail-track" :class="trackCls">
         <view v-for="slot in slots" :key="slot.k" class="rail-slot">
@@ -68,6 +70,15 @@ const trackCls = computed(() => {
   z-index: 2;
   transform: translateY(-50%);
   pointer-events: none;
+  transition: transform 460ms var(--settle), opacity 460ms var(--settle);
+  /* 比标题晚一点起手：视线先离开文字，右侧这条再跟着退 */
+  transition-delay: 90ms;
+}
+
+/* 往右让出屏幕而不是原地淡出：控件是「退到画面外」，不是「关灯」 */
+.rail--away {
+  opacity: 0;
+  transform: translateY(-50%) translateX(56rpx);
 }
 
 /*
@@ -223,6 +234,10 @@ const trackCls = computed(() => {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .rail {
+    transition: none;
+  }
+
   .rail-body {
     animation: none;
   }

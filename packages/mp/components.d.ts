@@ -12,12 +12,17 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    AppHeader: typeof import('./src/components/AppHeader.vue')['default']
     BottomSheet: typeof import('./src/components/BottomSheet.vue')['default']
+    BrandMark: typeof import('./src/components/BrandMark.vue')['default']
     CodeSheet: typeof import('./src/components/CodeSheet.vue')['default']
+    ColorPills: typeof import('./src/components/ColorPills.vue')['default']
+    ColorRail: typeof import('./src/components/ColorRail.vue')['default']
     FavouriteButton: typeof import('./src/components/FavouriteButton.vue')['default']
     PageRail: typeof import('./src/components/PageRail.vue')['default']
     PatternPicker: typeof import('./src/components/PatternPicker.vue')['default']
     PatternSurface: typeof import('./src/components/PatternSurface.vue')['default']
+    RollingNumber: typeof import('./src/components/RollingNumber.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     Switcher: typeof import('./src/components/Switcher.vue')['default']
@@ -26,12 +31,17 @@ declare module 'vue' {
 
 // For TSX support
 declare global {
+  const AppHeader: typeof import('./src/components/AppHeader.vue')['default']
   const BottomSheet: typeof import('./src/components/BottomSheet.vue')['default']
+  const BrandMark: typeof import('./src/components/BrandMark.vue')['default']
   const CodeSheet: typeof import('./src/components/CodeSheet.vue')['default']
+  const ColorPills: typeof import('./src/components/ColorPills.vue')['default']
+  const ColorRail: typeof import('./src/components/ColorRail.vue')['default']
   const FavouriteButton: typeof import('./src/components/FavouriteButton.vue')['default']
   const PageRail: typeof import('./src/components/PageRail.vue')['default']
   const PatternPicker: typeof import('./src/components/PatternPicker.vue')['default']
   const PatternSurface: typeof import('./src/components/PatternSurface.vue')['default']
+  const RollingNumber: typeof import('./src/components/RollingNumber.vue')['default']
   const RouterLink: typeof import('vue-router')['RouterLink']
   const RouterView: typeof import('vue-router')['RouterView']
   const Switcher: typeof import('./src/components/Switcher.vue')['default']

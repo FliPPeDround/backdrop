@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useFavourites } from '@/composables/favourites'
 
 const props = defineProps<{
   patternId: string
+  /** 父层也可以让星标弹一下（背景上双击收藏）：同一个状态变化，两个入口要给同一种回应 */
+  signal?: number
 }>()
 
 const emit = defineEmits<{
@@ -14,11 +16,20 @@ const { isFavourite, toggleFavourite } = useFavourites()
 const active = computed(() => isFavourite(props.patternId))
 const bumps = ref(0)
 
+// 换 key 让节点重建，弹出动画每次都能从头播
+function bump() {
+  bumps.value += 1
+}
+
+watch(() => props.signal, (next) => {
+  if (next)
+    bump()
+})
+
 function toggle() {
   const next = !active.value
   toggleFavourite(props.patternId)
-  // 换 key 让节点重建，弹出动画每次都能从头播
-  bumps.value += 1
+  bump()
   uni.vibrateShort()
   emit('change', next)
 }

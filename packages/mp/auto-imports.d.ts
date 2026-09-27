@@ -11,6 +11,7 @@ declare global {
   const EffectScope: typeof import('vue').EffectScope
   const asyncComputed: typeof import('@vueuse/core').asyncComputed
   const autoResetRef: typeof import('@vueuse/core').autoResetRef
+  const colorPaint: typeof import('./src/utils/color-paint').colorPaint
   const computed: typeof import('vue').computed
   const computedAsync: typeof import('@vueuse/core').computedAsync
   const computedEager: typeof import('@vueuse/core').computedEager
@@ -224,6 +225,7 @@ declare global {
   const useFullscreen: typeof import('@vueuse/core').useFullscreen
   const useGamepad: typeof import('@vueuse/core').useGamepad
   const useGeolocation: typeof import('@vueuse/core').useGeolocation
+  const useGestureHint: typeof import('./src/composables/gesture-hint').useGestureHint
   const useGlobalData: typeof import('@uni-helper/uni-use').useGlobalData
   const useId: typeof import('vue').useId
   const useIdle: typeof import('@vueuse/core').useIdle
@@ -378,6 +380,7 @@ declare module 'vue' {
   interface GlobalComponents {}
   interface ComponentCustomProperties {
     readonly EffectScope: UnwrapRef<typeof import('vue')['EffectScope']>
+    readonly colorPaint: UnwrapRef<typeof import('./src/utils/color-paint')['colorPaint']>
     readonly computed: UnwrapRef<typeof import('vue')['computed']>
     readonly createApp: UnwrapRef<typeof import('vue')['createApp']>
     readonly customRef: UnwrapRef<typeof import('vue')['customRef']>
@@ -453,6 +456,7 @@ declare module 'vue' {
     readonly useCssModule: UnwrapRef<typeof import('vue')['useCssModule']>
     readonly useCssVars: UnwrapRef<typeof import('vue')['useCssVars']>
     readonly useFavourites: UnwrapRef<typeof import('./src/composables/favourites')['useFavourites']>
+    readonly useGestureHint: UnwrapRef<typeof import('./src/composables/gesture-hint')['useGestureHint']>
     readonly useId: UnwrapRef<typeof import('vue')['useId']>
     readonly useModel: UnwrapRef<typeof import('vue')['useModel']>
     readonly usePagedPatterns: UnwrapRef<typeof import('./src/composables/paged')['usePagedPatterns']>

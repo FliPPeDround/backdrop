@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 const props = defineProps<{
   open: boolean
@@ -7,7 +7,11 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  close: []
+  'close': []
+  'drag-start': []
+  /** 0 = 贴在原位，1 = 已经拖到「松手就走」的那条线 */
+  'drag': [progress: number]
+  'drag-end': []
 }>()
 
 // 面板常驻，用 visibility 控制命中测试：这样开合都是同一条可打断的过渡曲线
@@ -16,25 +20,122 @@ const contentMounted = ref(props.open)
 watch(() => props.open, (isOpen) => {
   if (isOpen)
     contentMounted.value = true
+  else
+    resetDrag()
 })
+
+/**
+ * 拖到这里松手就走：约面板高度的三分之一，往下带一下手就够得着，
+ * 又不会让「只是想看看下一排缩略图」的误触把面板带走。
+ */
+const DISMISS_AT = 132
+/** 快速下甩的门槛（px/ms）：距离不够也走，看的是速度，和 iOS 面板同一个判据 */
+const FLICK = 0.5
+
+const dragging = ref(false)
+const offset = ref(0)
+const progress = computed(() => Math.min(1, Math.max(0, offset.value / DISMISS_AT)))
+
+let startY = 0
+let lastY = 0
+let lastAt = 0
+let velocity = 0
+
+/**
+ * 越过门槛之后开始拉不动：手感像下面有阻力，而不是把面板拖到屏幕外一片空白。
+ * 往上拉也留一点余量，但那点位移不该真的把面板举起来。
+ */
+function resist(dy: number) {
+  if (dy <= 0)
+    return dy * 0.25
+  return dy <= DISMISS_AT ? dy : DISMISS_AT + (dy - DISMISS_AT) * 0.42
+}
+
+function resetDrag() {
+  dragging.value = false
+  offset.value = 0
+}
+
+function onDragStart(event: { touches: readonly { clientY: number }[] }) {
+  const touch = event.touches[0]
+  if (!touch)
+    return
+  dragging.value = true
+  startY = touch.clientY
+  lastY = touch.clientY
+  lastAt = Date.now()
+  velocity = 0
+  offset.value = 0
+  emit('drag-start')
+}
+
+function onDragMove(event: { touches: readonly { clientY: number }[] }) {
+  if (!dragging.value)
+    return
+  const touch = event.touches[0]
+  if (!touch)
+    return
+  const now = Date.now()
+  const dt = now - lastAt || 1
+  velocity = (touch.clientY - lastY) / dt
+  lastY = touch.clientY
+  lastAt = now
+  offset.value = resist(touch.clientY - startY)
+  emit('drag', progress.value)
+}
+
+/**
+ * 松手只有两种结果，都交给同一条曲线：留下就清掉 inline 位移让 class 把面板送回原位，
+ * 走掉就带着当前位移直接换成收起的 class —— 过渡从「手指停在哪」接着走，不回中间那一格。
+ */
+function onDragEnd() {
+  if (!dragging.value)
+    return
+  const gone = offset.value > DISMISS_AT || velocity > FLICK
+  dragging.value = false
+  emit('drag-end')
+  if (gone)
+    emit('close')
+  else
+    offset.value = 0
+}
 
 function stop() {}
 </script>
 
 <template>
-  <view class="mask" :class="{ 'mask--on': props.open }" @tap="emit('close')">
-    <view class="frost" />
-    <view class="sheet" :class="{ 'sheet--on': props.open }" @tap.stop="stop">
-      <view class="grabber" />
-      <view v-if="contentMounted">
-        <view class="head">
-          <text class="head-title">{{ props.title }}</text>
-          <view class="head-actions">
-            <slot name="action" />
+  <view
+    class="mask"
+    :class="{ 'mask--on': props.open, 'mask--drag': dragging }"
+    @tap="emit('close')"
+  >
+    <!-- 拖到哪，背后的压暗就退到哪：手指在动的是「模态」这件事，不只是那块面板 -->
+    <view class="frost" :style="{ opacity: 1 - progress }" />
+    <view
+      class="sheet"
+      :class="{ 'sheet--on': props.open }"
+      :style="offset ? { transform: `translateY(${offset}px)` } : {}"
+      @tap.stop="stop"
+    >
+      <!-- 只有头部能拖：下面是横向滚动的缩略图，两边抢同一个手势会有一边失灵 -->
+      <view
+        class="grab-zone"
+        @touchstart="onDragStart"
+        @touchmove="onDragMove"
+        @touchend="onDragEnd"
+        @touchcancel="onDragEnd"
+      >
+        <view class="grabber" />
+        <view v-if="contentMounted">
+          <view class="head">
+            <text class="head-title">{{ props.title }}</text>
+            <view class="head-actions">
+              <slot name="action" />
+            </view>
           </view>
         </view>
-        <slot />
       </view>
+      <slot v-if="contentMounted" />
     </view>
   </view>
 </template>
@@ -61,6 +162,12 @@ function stop() {}
 .mask--on {
   visibility: visible;
   transition: visibility 0s;
+}
+
+/* 拖动的这一段必须一帧一帧跟手：过渡会让面板滑在手指后面 */
+.mask--drag .frost,
+.mask--drag .sheet {
+  transition: none;
 }
 
 /*
@@ -124,6 +231,13 @@ function stop() {}
   margin: 16rpx auto 4rpx;
   border-radius: 999rpx;
   background: rgba(255, 255, 255, 0.26);
+  transition: width 320ms var(--spring), background 320ms var(--spring);
+}
+
+/* 抓住了就把把手加宽、提亮：告诉手指「这块面板现在归你拖」 */
+.mask--drag .grabber {
+  width: 108rpx;
+  background: rgba(255, 255, 255, 0.44);
 }
 
 .head {
@@ -147,6 +261,10 @@ function stop() {}
 
 @media (prefers-reduced-motion: reduce) {
   .sheet {
+    transition: none;
+  }
+
+  .grabber {
     transition: none;
   }
 }
