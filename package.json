@@ -10,6 +10,10 @@
     "mcp:test": "pnpm --filter @backdrop/mcp run test",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
+    "build:web": "pnpm --filter web run build",
+    "deploy:web": "pnpm --package=netlify-cli@23 dlx netlify deploy --prod --filter @backdrop/web --no-build",
+    "deploy:web:draft": "pnpm --package=netlify-cli@23 dlx netlify deploy --filter @backdrop/web --no-build",
+    "release": "pnpm build:web && pnpm deploy:web",
     "up": "taze major -I",
     "postinstall": "npx simple-git-hooks"
   },

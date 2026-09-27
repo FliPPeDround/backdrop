@@ -7,5 +7,6 @@ dist-ssr
 node_modules
 .idea/
 *.log
+.netlify
 
 *.tsbuildinfo

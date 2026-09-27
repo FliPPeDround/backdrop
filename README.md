@@ -46,6 +46,23 @@ pnpm mcp:dev
 pnpm mcp:test
 ```
 
+## 发布
+
+推送只会更新仓库，不会部署。生产环境只在 release 时更新，三条路径等价：
+
+```bash
+# 1. 本地一键发布（需要本机已 `netlify login`，或设置 NETLIFY_AUTH_TOKEN / NETLIFY_SITE_ID）
+pnpm release
+
+# 2. 只上传一个草稿部署做验证，不影响线上
+pnpm deploy:web:draft
+
+# 3. 走 GitHub Actions：手动触发 Release 工作流，或推一个 v* 标签
+git tag v0.1.0 && git push origin v0.1.0
+```
+
+工作流（`.github/workflows/release.yml`）在 Actions 里构建，再用 Netlify CLI 把 `packages/web/dist` 和 `packages/mcp/functions` 上传到 `mpbackdrop` 站点，因此不占用 Netlify 的构建额度。GitHub 仓库需要两个 secrets：`NETLIFY_AUTH_TOKEN`、`NETLIFY_SITE_ID`。
+
 ## MCP 接入
 
 线上端点即本站的 `/mcp` 无需密钥。把它加进支持远程 MCP 的客户端：

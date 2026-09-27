@@ -1,3 +1,7 @@
+# 该文件必须放在仓库根目录：`netlify deploy` 只在当前工作目录读取 netlify.toml，
+# 而 release（本地 `pnpm release` / GitHub Actions）都在根目录执行。
+# 其中所有路径都相对仓库根目录解析（站点的 base 目录为空）。
+# Netlify 侧的 Git 自动构建已关闭（stop_builds），生产部署只走 release 流程。
 [build]
 command = "pnpm --filter web run build"
 publish = "packages/web/dist"

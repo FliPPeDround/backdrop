@@ -1,0 +1,53 @@
+name: Release
+
+# 生产部署只在这里发生：
+#   - 手动触发（Actions -> Release -> Run workflow）
+#   - 推送 v* 标签
+# 推送普通提交不会触发部署（Netlify 侧的 Git 自动构建已关闭）。
+on:
+  workflow_dispatch:
+    inputs:
+      message:
+        description: 部署说明（留空则使用分支名/tag 名）
+        required: false
+        type: string
+  push:
+    tags:
+      - 'v*'
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    name: Build & deploy web
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build web
+        run: pnpm build:web
+
+      - name: Deploy to Netlify (production)
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+          INPUT_MESSAGE: ${{ inputs.message }}
+        run: |
+          message="${INPUT_MESSAGE:-${GITHUB_REF_NAME}}"
+          pnpm deploy:web -- --message "$message"
