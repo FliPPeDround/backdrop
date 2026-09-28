@@ -11,6 +11,7 @@ allowBuilds:
 catalogs:
   build:
     '@iconify-json/carbon': ^1.2.27
+    '@iconify-json/mingcute': ^1.2.8
     '@vitejs/plugin-vue': ^6.0.9
     unocss: ^66.10.5
     unplugin-auto-import: ^21.1.0

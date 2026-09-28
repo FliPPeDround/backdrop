@@ -10,6 +10,14 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE) [![Netlify Status](https://api.netlify.com/api/v1/badges/f3671cec-f4c7-4944-a5b4-99a9c8c1ade2/deploy-status)](https://app.netlify.com/projects/mpbackdrop/deploys)
 
+## 扫码体验
+
+<p align="center">
+  <img src="./brand/backdrop/mp-qrcode.png" width="220" height="220" alt="Backdrop 小程序二维码" />
+  <br />
+  <sub>微信扫码，在手机上体验 Backdrop 小程序</sub>
+</p>
+
 ## 特性
 
 - 精选背景图案：渐变、光晕、网格等多种风格，持续更新

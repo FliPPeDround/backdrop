@@ -520,15 +520,16 @@ const gestureHint = computed(() => (hintVisible.value && !sheetOpen.value ? gest
       </swiper>
 
       <!--
-        白底之后，浅色图案上的标题全靠这层压暗；0.5 压不住近白底，提到 0.62。
-        中段留一段 0.52 的平台再收到 0：标题区拉开之后读数落在渐变尾段，纯线性衰减会让它
-        掉到 1.9:1，平台托回 3:1 以上，而图案照样在这层之下完整浮出来。
+        白底之后，浅色图案上的标题全靠这层压暗。0.62 太重、把图案自己盖掉了 ——
+        真机上两轮都嫌闷，一路收到 0.4，可读性改由文字自带的 text-shadow 扛。
+        中段留一段 0.28 的平台再收到 0：标题区拉开之后读数落在渐变尾段，纯线性衰减会让它
+        掉到 1.9:1，平台把它托回来，而图案在整层之下基本完整浮出来。
         长按看原图时这层也一起撤掉 —— 看原图就是连压暗也不要。
       -->
       <view
         class="absolute top-0 right-0 left-0 z-1 h-[54vh] pointer-events-none
           [transition:opacity_420ms_var(--settle)] motion-reduce:transition-none
-          bg-[linear-gradient(180deg,rgba(8,7,12,0.62)_0%,rgba(8,7,12,0.52)_42%,rgba(8,7,12,0)_100%)]"
+          bg-[linear-gradient(180deg,rgba(8,7,12,0.4)_0%,rgba(8,7,12,0.28)_42%,rgba(8,7,12,0)_100%)]"
         :class="peeking ? 'on:opacity-0' : ''"
       />
 

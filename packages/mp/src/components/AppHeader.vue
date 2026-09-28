@@ -128,7 +128,7 @@ const sweepClass = computed(
         字标压着标形走：字号取到 32rpx 而不是跟着标形等比放大，
         标形是身份、字标是名字，两者等高反而像两个图标并排。
       -->
-      <text class="text-[32rpx] font-600 tracking-[0.2rpx] text-white text-shadow-[0_1rpx_8rpx_rgba(8,7,12,0.45)]">Backdrop</text>
+      <text class="text-[32rpx] font-600 tracking-[0.2rpx] text-white text-shadow-[0_1rpx_8rpx_rgba(8,7,12,0.55)]">Backdrop</text>
     </view>
 
     <!--
@@ -158,7 +158,7 @@ const sweepClass = computed(
       读数行：类别是内容的属性，编号是位置。中间那根短横是行首的行标，
       有了它这一行才像展签的第一行，而不是随便一串灰字。
     -->
-    <view class="flex items-center mt-[28rpx] text-[23rpx] tracking-[0.6rpx] text-ink-2 text-shadow-[0_1rpx_6rpx_rgba(8,7,12,0.5)]">
+    <view class="flex items-center mt-[28rpx] text-[23rpx] tracking-[0.6rpx] text-ink-2 text-shadow-[0_1rpx_6rpx_rgba(8,7,12,0.6)]">
       <!-- 一根竖线当行标，不用短横：同一行里已经有一个「/」和一个可能出现的「—」 -->
       <view class="w-[2rpx] h-[22rpx] mr-[14rpx] bg-[rgba(255,255,255,0.42)]" />
       <text class="font-600">{{ category }}</text>
@@ -186,7 +186,7 @@ const sweepClass = computed(
         v-if="leavingName"
         :key="`out-${leavingName}`"
         class="absolute top-0 right-0 left-0 font-700 leading-[1.14] tracking-[-1.2rpx] text-white
-          text-shadow-[0_2rpx_16rpx_rgba(8,7,12,0.32)]"
+          text-shadow-[0_2rpx_16rpx_rgba(8,7,12,0.42)]"
         :class="leaveClass"
       >
         <text>{{ leavingName }}</text>
@@ -194,7 +194,7 @@ const sweepClass = computed(
       <!-- 进场 560ms、退场 360ms：离开的那一层不该抢新内容的注意力，两层必须同时动才读得出是交接 -->
       <view
         class="font-700 leading-[1.14] tracking-[-1.2rpx] text-white
-          text-shadow-[0_2rpx_16rpx_rgba(8,7,12,0.32)]"
+          text-shadow-[0_2rpx_16rpx_rgba(8,7,12,0.42)]"
         :class="enterClass"
       >
         <text>{{ name }}</text>
@@ -218,7 +218,7 @@ const sweepClass = computed(
           class="w-[15rpx] h-[15rpx] mr-[9rpx] rounded-full shadow-[0_0_0_2rpx_rgba(8,7,12,0.32)]"
           :style="{ background: color.swatch }"
         />
-        <text class="text-[23rpx] tracking-[0.4rpx] text-ink-2 text-shadow-[0_1rpx_6rpx_rgba(8,7,12,0.5)]">{{ color.label }}</text>
+        <text class="text-[23rpx] tracking-[0.4rpx] text-ink-2 text-shadow-[0_1rpx_6rpx_rgba(8,7,12,0.6)]">{{ color.label }}</text>
       </view>
     </view>
 
@@ -235,7 +235,7 @@ const sweepClass = computed(
         class="w-[12rpx] h-[12rpx] mr-[12rpx] rounded-full bg-[rgba(255,255,255,0.62)]
           animate-hint-pulse motion-reduce:animate-none"
       />
-      <text class="text-[22rpx] tracking-[0.4rpx] text-ink-2 text-shadow-[0_1rpx_6rpx_rgba(8,7,12,0.5)]">{{ shownHint }}</text>
+      <text class="text-[22rpx] tracking-[0.4rpx] text-ink-2 text-shadow-[0_1rpx_6rpx_rgba(8,7,12,0.6)]">{{ shownHint }}</text>
     </view>
   </view>
 </template>
