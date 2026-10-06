@@ -248,8 +248,13 @@ onShareTimeline(() => ({
       </view>
     </view>
 
+    <!--
+      结尾不喊「去 GitHub 点 Star」：往小程序外面引的号召容易被按诱导跳转卡审。
+      想支持的人会注意到上面「开源」一组里的仓库链接，复制走就行；这里只留
+      小程序自己的动作 —— 转发，正好接住页面顶部已经打开的分享菜单。
+    -->
     <view class="mt-[64rpx] text-center" :class="rise(4)">
-      <text class="text-[22rpx] leading-[1.8] text-ink-3">如果它帮到了你，欢迎到 GitHub 点个 Star。</text>
+      <text class="text-[22rpx] leading-[1.8] text-ink-3">如果它帮到了你，欢迎转发给同样在写小程序的人。</text>
     </view>
   </view>
 </template>
