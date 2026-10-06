@@ -31,6 +31,9 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   filterColor: [id: string]
+  openAbout: []
+  /** 起手落在标形上：让页面上那层手势仲裁别把这次触摸算成「长按看原图」 */
+  lockupTouch: []
 }>()
 
 interface CapsuleRect {
@@ -123,12 +126,33 @@ const sweepClass = computed(
     :style="{ paddingTop: `${nav.top}px` }"
   >
     <view class="flex items-center" :style="{ height: `${nav.height}px` }">
-      <BrandMark />
       <!--
-        字标压着标形走：字号取到 32rpx 而不是跟着标形等比放大，
-        标形是身份、字标是名字，两者等高反而像两个图标并排。
+        标形加字标就是这个小程序自己的身份，点它进「关于」：
+        项目叫什么、谁做的、代码在哪，最该待的地方就是项目自己的名字底下。
+        负外边距把内衬吃掉 —— 命中区往外长一圈（这一行只有 32px 高，拇指够不着），版式一格不动。
+
+        触摸只能 bind，不能 catch：catchtouchstart 会让微信认定这次触摸被「吃掉」，
+        同一节点上的 tap 就不再派发 —— 表现就是点了没反应。这一块又确实是按钮、
+        不该跟着长按去看原图，所以这里只上报一句「起手在我这儿」，
+        由页面上那层手势仲裁让开（见 index.vue 的 lockupDown）。
       -->
-      <text class="text-[32rpx] font-600 tracking-[0.2rpx] text-white text-shadow-[0_1rpx_8rpx_rgba(8,7,12,0.55)]">Backdrop</text>
+      <view
+        class="flex items-center -ml-[16rpx] px-[16rpx] py-[16rpx] rounded-[16rpx] pointer-events-auto press"
+        :class="away ? 'on:pointer-events-none' : ''"
+        hover-class="press--on"
+        :hover-stay-time="60"
+        @touchstart="emit('lockupTouch')"
+        @tap.stop="emit('openAbout')"
+      >
+        <BrandMark />
+        <!--
+          字标压着标形走：字号取到 32rpx 而不是跟着标形等比放大，
+          标形是身份、字标是名字，两者等高反而像两个图标并排。
+        -->
+        <text class="text-[32rpx] font-600 tracking-[0.2rpx] text-white text-shadow-[0_1rpx_8rpx_rgba(8,7,12,0.55)]">Backdrop</text>
+        <!-- 一枚很轻的指示：这里进得去，别让人猜。压暗跟着字标，不抢名字 -->
+        <view class="i-carbon-chevron-right ml-[10rpx] text-[22rpx] text-[rgba(255,255,255,0.42)]" />
+      </view>
     </view>
 
     <!--

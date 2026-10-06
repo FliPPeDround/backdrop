@@ -102,6 +102,19 @@ const filterLabel = computed(() => {
 
 /** 长按看原图：所有控件让位，图案整屏铺开 */
 const peeking = ref(false)
+
+/**
+ * 这一次起手是不是落在页头的标形上。
+ *
+ * 标形是一颗按钮，不该跟着长按去看原图 —— 否则按住名字 260ms 会先闪一下让位、
+ * 松手才把「关于」推出来，一次触摸干了两件事。
+ *
+ * 摘出去的办法不是给标形挂 catchtouchstart（那会让微信吞掉同一节点上的 tap，
+ * 点了根本没反应），而是让标形照常冒泡上来，只用这个标记告诉仲裁层：这一下不算长按。
+ * 起手先读再清，所以它的有效期正好是一次触摸（见 onStageTouchStart）。
+ */
+let lockupHold = false
+
 /** 面板被拖着往下时，父层一点点回到原位，拖到哪松手都接得上 */
 const sheetDragging = ref(false)
 const sheetProgress = ref(0)
@@ -344,6 +357,11 @@ function onFavouriteChange(next: boolean) {
   uni.showToast({ title: next ? '已收藏' : '已取消收藏', icon: 'none' })
 }
 
+/** 从页头的标形进「关于」：入口就是项目自己的名字，不额外占一格版面 */
+function openAbout() {
+  uni.navigateTo({ url: '/pages/about' })
+}
+
 function pickColor(id: string) {
   activeColor.value = id as typeof activeColor.value
   dismissHint()
@@ -365,11 +383,21 @@ function firstTouch(event: { touches: readonly { clientX: number, clientY: numbe
   return event.touches[0]
 }
 
+/** 标形上报「起手在我这儿」：标形在页头里、页头在这层之上，它的 touchstart 一定先跑到 */
+function lockupDown() {
+  lockupHold = true
+}
+
 function onStageTouchStart(event: { touches: readonly { clientX: number, clientY: number }[] }) {
+  // 先读再清：无论后面走哪条分支，这个标记都只活这一次触摸
+  const fromLockup = lockupHold
+  lockupHold = false
   if (sheetOpen.value)
     return
   const touch = firstTouch(event)
   if (!touch)
+    return
+  if (fromLockup)
     return
   originX = touch.clientX
   originY = touch.clientY
@@ -549,6 +577,8 @@ const gestureHint = computed(() => (hintVisible.value && !sheetOpen.value ? gest
         :turn="headTurn"
         :away="peeking"
         @filter-color="pickColor"
+        @open-about="openAbout"
+        @lockup-touch="lockupDown"
       />
 
       <!-- 底部两层：色轨在上、dock 在下，让位时各走各的延迟，读起来像一次收拢 -->

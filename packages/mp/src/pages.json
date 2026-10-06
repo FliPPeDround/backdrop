@@ -19,6 +19,13 @@
         "navigationBarTitleText": "Backdrop",
         "navigationStyle": "custom"
       }
+    },
+    {
+      "path": "pages/about",
+      "type": "page",
+      "style": {
+        "navigationBarTitleText": "关于"
+      }
     }
   ],
   "subPackages": []
