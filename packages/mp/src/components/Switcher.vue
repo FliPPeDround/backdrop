@@ -25,8 +25,7 @@ const index = computed(() => {
       <text>{{ props.title }}</text>
     </view>
     <view
-      class="relative p-[5rpx] rounded-full bg-[rgba(255,255,255,0.09)]
-        shadow-[inset_0_1rpx_3rpx_rgba(0,0,0,0.28)]"
+      class="relative p-[5rpx] rounded-full glass-inset"
     >
       <!-- 等宽分段，位移用百分比即可，无需量取节点位置 -->
       <view

@@ -256,6 +256,13 @@ export default defineConfig({
       'reduce-transparency:bg-[rgba(28,26,36,0.72)]',
       'reduce-transparency:backdrop-filter-none',
     ].join(' ')],
+
+    /*
+     * 浅色内嵌玻璃：面板上「凹进去」的那一层 —— 分段控件的轨道和代码块是同一个面。
+     * 它不靠 backdrop-filter，只是一层很薄的白加一道内阴影：
+     * 两处因此永远同色，不会各自调一个近似的白，久了也不会走散。
+     */
+    ['glass-inset', 'bg-[rgba(255,255,255,0.09)] shadow-[inset_0_1rpx_3rpx_rgba(0,0,0,0.28)]'],
   ],
 
   variants: [

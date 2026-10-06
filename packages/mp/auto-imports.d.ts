@@ -11,6 +11,7 @@ declare global {
   const EffectScope: typeof import('vue').EffectScope
   const asyncComputed: typeof import('@vueuse/core').asyncComputed
   const autoResetRef: typeof import('@vueuse/core').autoResetRef
+  const codeTheme: typeof import('./src/utils/code-theme').codeTheme
   const colorPaint: typeof import('./src/utils/color-paint').colorPaint
   const computed: typeof import('vue').computed
   const computedAsync: typeof import('@vueuse/core').computedAsync
@@ -380,6 +381,7 @@ declare module 'vue' {
   interface GlobalComponents {}
   interface ComponentCustomProperties {
     readonly EffectScope: UnwrapRef<typeof import('vue')['EffectScope']>
+    readonly codeTheme: UnwrapRef<typeof import('./src/utils/code-theme')['codeTheme']>
     readonly colorPaint: UnwrapRef<typeof import('./src/utils/color-paint')['colorPaint']>
     readonly computed: UnwrapRef<typeof import('vue')['computed']>
     readonly createApp: UnwrapRef<typeof import('vue')['createApp']>
