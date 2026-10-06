@@ -657,7 +657,7 @@ const gestureHint = computed(() => (hintVisible.value && !sheetOpen.value ? gest
           :hover-stay-time="60"
           @tap="codeOpen = true"
         >
-          复制代码
+          代码预览
         </text>
       </template>
       <PatternPicker
