@@ -17,6 +17,15 @@ directory = "packages/mcp/functions"
 # `/mcp` -> `/.netlify/functions/mcp` redirect: v2 functions are not published at that
 # path, and a forced redirect outranks the function route, so it turns /mcp into a 404.
 
+# 预渲染出的图案页在 dist/p/<id>/index.html。带斜杠的地址直接命中该文件，
+# 不带斜杠的地址没有对应文件、会掉进下面的 catch-all 而拿到首页 HTML
+# （分享卡片和标题就都变成站点的了）。这里显式补一条 301，不依赖 Netlify 的
+# pretty urls 设置。`:id` 只匹配单个路径段，图案 id 里没有斜杠。
+[[redirects]]
+from = "/p/:id"
+to = "/p/:id/"
+status = 301
+
 [[redirects]]
 from = "/*"
 to = "/index.html"

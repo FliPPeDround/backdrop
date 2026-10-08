@@ -54,6 +54,26 @@ pnpm mcp:dev
 pnpm mcp:test
 ```
 
+### 构建与 SEO 产物
+
+`pnpm build:web` 会先跑 Vite，再跑 `scripts/prerender.ts`，缺一不可：
+
+```bash
+# Vite 打包 + 预渲染（生成 /p/<id>/ 静态页、robots.txt、sitemap.xml）
+pnpm build:web
+```
+
+预渲染为每个图案生成一份带独立标题、描述、canonical 和分享图的静态 HTML。微信、掘金、Twitter 的抓取器不执行 JS，只有这样才能让分享出去的图案链接显示对应的卡片。
+
+分享卡片本身是提交到仓库的图片（`public/og.png` 与 `public/og/<id>.jpg`），构建时不重新生成——CI 上没有 Chromium 也能正常构建。新增或调整图案后重新生成一次：
+
+```bash
+# 需要本机有 Chromium / Chrome，可用 CHROME_PATH 指定
+pnpm --filter @backdrop/web run gen:og
+```
+
+卡片里的图案用库里真实的 CSS 渲染，所以改了图案样式重跑这一步就能同步。
+
 ## 发布
 
 推送只会更新仓库，不会部署。生产环境只在 release 时更新，三条路径等价：
@@ -90,7 +110,7 @@ git tag v0.1.0 && git push origin v0.1.0
 - `search_patterns`：按中文或英文描述检索，返回候选的 `id` / `name` / `nameZh` / `category` / `tags` / `url` 和命中的查询词，不含代码。颜色会同时与图案真实的 CSS 值比对，所以「柔和一点的蓝色渐变」能命中名字里没有 blue 的 `Azure Depths`。结果多时用 `limit` / `offset` 翻页。
 - `get_pattern_code`：按 `id`（或完整中文名 / 英文名）取单个图案的代码，`framework` 选微信原生 / uni-app / Taro / Wevu（默认微信原生），`style` 选内联 / 样式分离 / Tailwind（默认内联）。只做精确匹配：认不出会提示先用 `search_patterns`，不会猜一个近似图案。
 
-两个工具都是只读、幂等的，返回结构化数据加一份文本摘要；`id` 忽略大小写、空格和连字符。搜索结果里的 `url` 指向本站的 `?pattern=<id>` 深链，点开就能看真机预览效果。
+两个工具都是只读、幂等的，返回结构化数据加一份文本摘要；`id` 忽略大小写、空格和连字符。搜索结果里的 `url` 指向本站的 `/p/<id>/` 深链，点开就能看真机预览效果；这个地址在构建时会被预渲染成独立页面，各自带标题和分享图，所以贴到微信或掘金里会显示该图案自己的卡片，而不是站点通用卡片。旧的 `?pattern=<id>` 写法仍然可用，只是分享效果差一些。
 
 ## License
 

@@ -80,7 +80,7 @@ describe('search_patterns', () => {
     const output = searchPatterns({ query: '深色网格' })
     assert.ok(output.results.length > 0)
     for (const result of output.results) {
-      assert.equal(result.url, `https://mpbackdrop.netlify.app/?pattern=${encodeURIComponent(result.id)}`)
+      assert.equal(result.url, `https://mpbackdrop.netlify.app/p/${encodeURIComponent(result.id)}/`)
       assert.ok(result.tags.length > 0, `${result.id} has no tags`)
       assert.ok(result.matched.length > 0, `${result.id} does not say why it matched`)
     }
@@ -119,7 +119,7 @@ describe('get_pattern_code', () => {
     assert.deepEqual(result.files.map(file => file.filename), ['index.tsx', 'index.scss'])
     assert.deepEqual(result.files.map(file => file.lang), ['javascript', 'css'])
     assert.match(result.text, /--- index\.tsx/)
-    assert.match(result.text, /Preview: https:\/\/mpbackdrop\.netlify\.app\/\?pattern=soft-blue-radial/)
+    assert.match(result.text, /Preview: https:\/\/mpbackdrop\.netlify\.app\/p\/soft-blue-radial\//)
   })
 
   it('accepts ids and names however a model re-cases or re-spaces them', () => {

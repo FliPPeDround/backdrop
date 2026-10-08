@@ -6,6 +6,7 @@ import { gridPatterns } from '@backdrop/data'
 import { PATTERN_CATEGORIES, usePatternBrowser } from '@backdrop/shared'
 import { Motion } from 'motion-v'
 import { useFavourites } from '~/composables/favourites'
+import { patternSelectionUrl, readPatternIdFromLocation } from '~/composables/patternLink'
 import { useProgressiveReveal } from '~/composables/progressiveReveal'
 import { readOrigin } from './origin'
 
@@ -14,22 +15,18 @@ const { activeCategory, activeColor, colors, filteredPatterns } = usePatternBrow
 const origin = ref<CardOrigin | null>(null)
 const originEl = shallowRef<HTMLElement | null>(null)
 
-// 深链 ?pattern=<id>：MCP 的搜索结果带着预览链接回到这里，直接打开对应图案
-const LINKED_ID = typeof window === 'undefined'
-  ? null
-  : new URLSearchParams(window.location.search).get('pattern')
+// 深链：MCP 搜索结果和分享链接带着图案 id 回到这里，直接打开对应图案。
+// 认 `/p/<id>/` 和旧的 `?pattern=<id>` 两种写法，见 composables/patternLink。
+const LINKED_ID = typeof window === 'undefined' ? null : readPatternIdFromLocation()
 const selected = ref<Pattern | null>(
   gridPatterns.find(pattern => pattern.id === LINKED_ID) ?? null,
 )
 
+// 打开/关闭图案时同步地址栏，方便直接复制粘贴分享
 watch(selected, (pattern) => {
   if (typeof window === 'undefined')
     return
-  const url = new URL(window.location.href)
-  if (pattern)
-    url.searchParams.set('pattern', pattern.id)
-  else url.searchParams.delete('pattern')
-  window.history.replaceState(null, '', url)
+  window.history.replaceState(null, '', patternSelectionUrl(pattern?.id ?? null))
 })
 
 const BATCH = 12

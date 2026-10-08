@@ -5,6 +5,7 @@
   "packageManager": "pnpm@10.12.1",
   "exports": {
     ".": "./src/index.ts",
+    "./pattern-meta": "./src/index/pattern-meta.ts",
     "./*": "./*"
   },
   "main": "./src/index.ts",

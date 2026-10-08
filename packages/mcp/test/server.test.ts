@@ -48,7 +48,7 @@ describe('mcp server surface', () => {
     const structured = result.structuredContent as { total: number, results: Array<{ id: string, url: string }> }
     assert.ok(structured.total > 0)
     assert.equal(structured.results[0]?.id, 'soft-blue-radial')
-    assert.match(structured.results[0]!.url, /^https:\/\/mpbackdrop\.netlify\.app\/\?pattern=/)
+    assert.match(structured.results[0]!.url, /^https:\/\/mpbackdrop\.netlify\.app\/p\//)
 
     const text = (result.content[0] as { text: string }).text
     assert.match(text, /soft-blue-radial/)

@@ -76,8 +76,10 @@ declare global {
   const onUnmounted: typeof import('vue').onUnmounted
   const onUpdated: typeof import('vue').onUpdated
   const onWatcherCleanup: typeof import('vue').onWatcherCleanup
+  const patternPath: typeof import('./src/composables/patternLink').patternPath
+  const patternSelectionUrl: typeof import('./src/composables/patternLink').patternSelectionUrl
   const patternShareData: typeof import('./src/composables/patternShare').patternShareData
-  const patternShareUrl: typeof import('./src/composables/patternShare').patternShareUrl
+  const patternShareUrl: typeof import('./src/composables/patternLink').patternShareUrl
   const pausableWatch: typeof import('@vueuse/core').pausableWatch
   const provide: typeof import('vue').provide
   const provideLocal: typeof import('@vueuse/core').provideLocal
@@ -87,6 +89,7 @@ declare global {
   const reactiveComputed: typeof import('@vueuse/core').reactiveComputed
   const reactiveOmit: typeof import('@vueuse/core').reactiveOmit
   const reactivePick: typeof import('@vueuse/core').reactivePick
+  const readPatternIdFromLocation: typeof import('./src/composables/patternLink').readPatternIdFromLocation
   const readonly: typeof import('vue').readonly
   const ref: typeof import('vue').ref
   const refAutoReset: typeof import('@vueuse/core').refAutoReset
@@ -397,8 +400,10 @@ declare module 'vue' {
     readonly onUnmounted: UnwrapRef<typeof import('vue')['onUnmounted']>
     readonly onUpdated: UnwrapRef<typeof import('vue')['onUpdated']>
     readonly onWatcherCleanup: UnwrapRef<typeof import('vue')['onWatcherCleanup']>
+    readonly patternPath: UnwrapRef<typeof import('./src/composables/patternLink')['patternPath']>
+    readonly patternSelectionUrl: UnwrapRef<typeof import('./src/composables/patternLink')['patternSelectionUrl']>
     readonly patternShareData: UnwrapRef<typeof import('./src/composables/patternShare')['patternShareData']>
-    readonly patternShareUrl: UnwrapRef<typeof import('./src/composables/patternShare')['patternShareUrl']>
+    readonly patternShareUrl: UnwrapRef<typeof import('./src/composables/patternLink')['patternShareUrl']>
     readonly pausableWatch: UnwrapRef<typeof import('@vueuse/core')['pausableWatch']>
     readonly provide: UnwrapRef<typeof import('vue')['provide']>
     readonly provideLocal: UnwrapRef<typeof import('@vueuse/core')['provideLocal']>
@@ -408,6 +413,7 @@ declare module 'vue' {
     readonly reactiveComputed: UnwrapRef<typeof import('@vueuse/core')['reactiveComputed']>
     readonly reactiveOmit: UnwrapRef<typeof import('@vueuse/core')['reactiveOmit']>
     readonly reactivePick: UnwrapRef<typeof import('@vueuse/core')['reactivePick']>
+    readonly readPatternIdFromLocation: UnwrapRef<typeof import('./src/composables/patternLink')['readPatternIdFromLocation']>
     readonly readonly: UnwrapRef<typeof import('vue')['readonly']>
     readonly ref: UnwrapRef<typeof import('vue')['ref']>
     readonly refAutoReset: UnwrapRef<typeof import('@vueuse/core')['refAutoReset']>

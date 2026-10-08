@@ -1,16 +1,9 @@
 import type { Pattern } from '@backdrop/data'
+import { patternShareUrl } from './patternLink'
 
 export type ShareFeedback = 'idle' | 'shared' | 'copied' | 'failed'
 
 const FEEDBACK_MS = 1800
-
-/** 站内深链（?pattern=<id>），与 MCP 搜索结果里给出的 url 保持一致 */
-export function patternShareUrl(id: string) {
-  const url = new URL(window.location.href)
-  url.hash = ''
-  url.searchParams.set('pattern', id)
-  return url.toString()
-}
 
 export function patternShareData(pattern: Pattern): ShareData {
   return {

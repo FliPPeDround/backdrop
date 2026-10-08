@@ -354,6 +354,9 @@ importers:
         specifier: catalog:frontend
         version: 5.3.1(@vue/compiler-sfc@3.5.43)(esbuild@0.28.2)(rolldown@1.2.9)(rollup@4.14.3)(vite@8.3.0(@types/node@26.6.1)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.14)(yaml@2.9.1))(vue@3.5.43(typescript@6.0.3))
     devDependencies:
+      '@backdrop/mcp':
+        specifier: workspace:*
+        version: link:../mcp
       '@iconify-json/carbon':
         specifier: catalog:build
         version: 1.2.27
@@ -366,6 +369,9 @@ importers:
       '@vitejs/plugin-vue':
         specifier: catalog:build
         version: 6.0.9(vite@8.3.0(@types/node@26.6.1)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.14)(yaml@2.9.1))(vue@3.5.43(typescript@6.0.3))
+      tsx:
+        specifier: catalog:dev
+        version: 4.23.14
       unocss:
         specifier: catalog:build
         version: 66.10.5(cac@7.0.0)(rolldown@1.2.9)(rollup@4.14.3)(srvx@1.0.5)(vite@8.3.0(@types/node@26.6.1)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.14)(yaml@2.9.1))
